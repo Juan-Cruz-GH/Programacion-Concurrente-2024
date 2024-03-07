@@ -1,7 +1,7 @@
 # Recursos
 
 -   [Playlist con todas las teorías grabadas](https://www.youtube.com/playlist?list=PLDJU8kNAPOn-nY4Q5YesYIYuGw1AqIUm7)
-
+- Test
 <center>
 
 # Clase 1
