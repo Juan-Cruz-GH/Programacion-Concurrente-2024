@@ -1,3 +1,10 @@
+# General
+
+-   Para la promoción:
+
+1. El "coloquio" no es un coloquio como tal, no se hacen preguntas técnicas. Es simplemente una charla sobre la materia y sugerencias.
+2. El trabajo final para levantar nota puede llegar a ser opcional y no obligatorio, lo anunciará el profe.
+
 # Recursos
 
 -   [Playlist con todas las teorías grabadas](https://www.youtube.com/playlist?list=PLDJU8kNAPOn-nY4Q5YesYIYuGw1AqIUm7)
