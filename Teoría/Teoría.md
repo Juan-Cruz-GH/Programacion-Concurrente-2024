@@ -217,3 +217,13 @@ process Estudiantes [i = 1 to N] {
 N procesos independientes.
 
 ```
+
+---
+
+<center>
+
+# Clase 2
+
+</center>
+
+## Acciones atómicas y sincronización
