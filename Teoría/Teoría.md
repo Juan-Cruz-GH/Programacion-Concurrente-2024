@@ -1,7 +1,7 @@
 # Recursos
 
 -   [Playlist con todas las teorías grabadas](https://www.youtube.com/playlist?list=PLDJU8kNAPOn-nY4Q5YesYIYuGw1AqIUm7)
-- Test
+
 <center>
 
 # Clase 1
@@ -42,15 +42,15 @@ Dedica una parte del tiempo a cada tarea, aprovechando tiempos muertos. Todo est
 
 #### Concurrente con Paralelismo
 
-Tenemos un multicore. Todos los cores trabajan al mismo tiempo haciendo cada uno una tarea.
+Tenemos un multicore. Todos los cores trabajan al mismo tiempo de forma concurrente haciendo cada uno una tarea. El objetivo principal es reducir el tiempo de ejecución.
 
 #### Concurrencia
 
-Por ende, la concurrencia es un concepto de **software** que se puede adaptar a **cualquier arquitectura**!!. Un programa concurrente puede ser ejecutado en un monocore o multicore.
+Por ende, la concurrencia es un concepto de **software** que se puede adaptar a **CUALQUIER ARQUITECTURA**. Un programa concurrente puede ser ejecutado en un monocore o multicore.
 
 ## Programa Concurrente
 
--   Que un programa se divida en 2 o más **procesos** que actúan al mismo tiempo para resolver un mismo problema.
+-   Un programa concurrente es uno que se compone de 2 o más **procesos** que actúan al mismo tiempo para resolver un mismo problema.
 -   Los procesos que forman parte de un programa concurrente suelen **interactuar** entre sí y comunicarse o sincronizarse.
 -   No son determinísticos, lo cual dificulta el debugging.
 
@@ -85,7 +85,11 @@ Un programa concurrente puede hacer uso de ambos métodos de sincronización sin
 
 ## Interferencia
 
-Un proceso hace algo que invalida las suposiciones que hizo otro proceso. Casi siempre ocurre por no respetar las secciones críticas utilizando exclusión mutua o sinc. por condición. Debe evitarse siempre.
+Un proceso hace algo que invalida las suposiciones que hizo otro proceso. Casi siempre ocurre por no respetar las secciones críticas utilizando exclusión mutua o sinc. por condición. **Debe evitarse siempre**.
+
+## Prioridad de un proceso
+
+Si un proceso tiene mayor prioridad que otro, puede causar la suspensión de otro proceso. También puede obligar a otro proceso a liberar un recurso para él poder usarlo.
 
 ## Granularidad de una aplicación
 
@@ -124,10 +128,47 @@ Los lenguajes de programación concurrente deben proveer instrucciones adecuadas
 -   Mayor tiempo de desarrollo y puesta a punto. Sobre todo si estamos tratando de paralelizar un algoritmo secuencial.
 -   Dificultad al alinear la solución (grano fino o grueso) a la arquitectura que poseemos.
 
+## Concurrencia a nivel de hardware
+
+Debido a que la concurrencia utilizando un solo core está limitada a la velocidad propia de ese núcleo, surgieron los multicore, los cuales incrementan la performance drásticamente explotando la concurrencia al máximo.
+
+#### Multicores de memoria compartida
+
+-   Esquema UMA vs NUMA.
+-   Poseen problemas de sincronización y consistencia.
+
+#### Multicores de memoria distribuida
+
+-   N procesadores conectados entre sí vía una red.
+-   Cada uno posee su propia memoria, evitando problemas de consistencia.
+-   Los procesadores interactúan entre sí solo vía pasaje de mensajes.
+
 ## Instrucciones
 
+-   **_Declaración_**:
+
+```
+tipo variable = valor
+int x = 8
+
+tipo arreglo[tamaño] = ([tamaño] valor repetido en todas las posiciones)
+int a[10] = ([10] 0) // Arreglo tamaño 10 con todas sus posiciones en 0.
+```
+
+-   **_Asignación_**:
+
+```
+a = b
+a = a + 1
+c = a + b
+a[3] = 6
+
+d :=: f // swappea los valores de d con los de f.
+
+```
+
 -   **_skip_**: termina inmediatamente y no tiene ningún efecto sobre ninguna variable del programa.
--   **_Sentencia de alternativa múltiple:_** Se chequean toads las condiciones booleanas al msimo tiempo y de las que son verdaderas se elige **una sola** de ellas en forma no determinística y se ejecuta la serie de instrucciones asociadas a esa condición.
+-   **_Sentencia de alternativa múltiple_**: Se chequean toads las condiciones booleanas al msimo tiempo y de las que son verdaderas se elige **una sola de ellas en forma no determinística** y se ejecuta la serie de instrucciones asociadas a esa condición.
 
 ```
 if B1 -> S1
@@ -136,7 +177,7 @@ if B1 -> S1
 fi
 ```
 
--   **_Sentencia de alternativa ITERATIVA múltiple:_** Igual que el anterior pero sigue repetiendo la ejecución una y otra vez hasta que TODAS las condiciones sean **falsas**.
+-   **_Sentencia de alternativa ITERATIVA múltiple_**: Igual que el anterior pero sigue repetiendo la ejecución una y otra vez hasta que TODAS las condiciones sean **falsas**.
 
 ```
 do B1 -> S1
@@ -145,6 +186,27 @@ do B1 -> S1
 od
 ```
 
--   **_co_**: Ejecuta Sn tareas concurrentemente. Su ejecución termina cuando todas las tareas concurrentes terminaron.
+-   **_co_**: Espera a que el proceso creado termine antes de seguir ejecutando la siguiente sentencia luego del co.
 
--   **_Process_**: Forma de definir un proceso concurrente. Podemos usar [i=1 to N] para definir N de estos.
+```
+co S1 // .. // Sn oc
+Ejecuta Sn tareas concurrentemente. Su ejecución termina cuando todas las tareas concurrentes terminaron.
+
+co [i = 1 to n] { a[i] = 0; b[i] = 0 } oc
+Crea N tareas concurrentes
+```
+
+-   **_process_**: Ejecuta en background, es decir que no espera a que el process termine.
+
+```
+process Estudiante {
+   ...
+}
+Proceso único, independiente.
+
+process Estudiantes [i = 1 to N] {
+   ...
+}
+N procesos independientes.
+
+```
