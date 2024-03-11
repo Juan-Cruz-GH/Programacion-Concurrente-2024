@@ -226,4 +226,4 @@ N procesos independientes.
 
 </center>
 
-## Acciones atómicas y sincronización
+## Acciones atómicas y sincronizaciónn
