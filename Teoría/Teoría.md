@@ -1,14 +1,3 @@
-# General
-
--   Para la promoción:
-
-1. El "coloquio" no es un coloquio como tal, no se hacen preguntas técnicas. Es simplemente una charla sobre la materia y sugerencias.
-2. El trabajo final para levantar nota puede llegar a ser opcional y no obligatorio, lo anunciará el profe.
-
-# Recursos
-
--   [Playlist con todas las teorías grabadas](https://www.youtube.com/playlist?list=PLDJU8kNAPOn-nY4Q5YesYIYuGw1AqIUm7)
-
 <center>
 
 # Clase 1
@@ -226,4 +215,84 @@ N procesos independientes.
 
 </center>
 
-## Acciones atómicas y sincronizaciónn
+## Acciones atómicas y sincronización
+
+#### Estado de un programa concurrente
+
+El estado de un PC son los valores que tienen todas las variables (privadas y compartidas) cuando detenemos la ejecución en un instante de tiempo determinado.
+
+#### Acciones atómicas
+
+Acción que no puede descomponerse en acciones más pequeñas.
+
+- De grano **fino**: las "reales", es decir las de hardware.
+- De grano **grueso**: simuladas vía mutex.
+
+Por ejemplo, A = B (asignar una variable a otra) NO es atómica, pero A = 1 si lo es.
+
+Load PosMemA, registro // es atómica de grano fino.
+
+#### Historias de un programa concurrente
+
+Secuencia de acciones atómicas que se van ejecutando en cada proceso. Algunas historias serán válidas y otras no. Hay que evitar, mediante restricciones, las historias no válidas.
+
+#### Tiempos e intuición
+
+Nunca asumir nada sobre los tiempos de ejecución y no confiar en la intuición cuando analizamos programas concurrentes.
+
+#### Referencia crítica
+
+Leer el valor de una variable que es modificada por otro proceso.
+
+#### Propiedad "a lo sumo una vez"
+
+Una asignación a = b satisface esta propiedad si cumple cualquiera de estas 2 condiciones:
+1. **b** contiene A LO SUMO una referencia crítica y **a** no es referenciada por otro proceso.
+2. **b** no contiene ninguna referencia crítica, en cuyo caso **a** puede ser leída por otro proceso.
+
+- En resumen, puede haber a lo sumo una variable compartida y puede ser referenciada a lo sumo una vez.
+
+- Si una expresión o asignación NO cumple la propiedad ASV es necesario ejecutarla atómicamente.
+
+#### Sentencia <> y await
+
+```
+< Sentencias > 
+```
+- **Await para exclusión mutua.** Significa que todas las instrucciones que se encuentran dentro de estos dos símbolos se ejecuta de forma atómica.
+```
+< await (condición) Sentencias > 
+```
+- **Await general.** Significa que mientras la condición sea falsa el proceso espera/hace busy waiting (NO SE DUERME). Cuando es verdadera ejecuta en forma atómica las sentencias.
+```
+< await (condición) > 
+```
+- **Await para sincronización por condición.** Significa que mientras la condición sea falsa el proceso espera/hace busy waiting (NO SE DUERME). Cuando es verdadera sale del await.
+
+## Propiedades y fairness
+
+Una propiedad de un PC es un atributo que siempre es verdadero en todas las historias del PC. Será verdadero sin importar cuantas veces ejecute el programa.
+
+#### Propiedades de seguridad vs de vida
+
+- **Seguridad:** Que no haya errores o cosas raras.
+   - ?
+   - ?
+   - Corrección parcial -> Siempre que el programa termina, termina "bien", es decir da un resultado correcto. No asegura que el programa termine en sí.
+
+- **Vida:** Que ningun proceso se atasque.
+   - Ausencia de deadlock -> ningun proceso se atasca para siempre.
+   - Terminación -> el programa siempre terminará. No asegura que el resultado final sea correcto o no.
+
+Si se cumplen ambas propiedades, tenemos **total correctness**.
+
+#### Fairness y políticas de scheduling
+
+- **Fairness:** Intenta garantizar que todos los procesos tengan chance de avanzar.
+- **Política de scheduling:** Según la configuración del sistema operativo, se elegirá como siguiente a ejecutar una acción atómica de uno u otro proceso.
+
+#### Tipos de fairness
+
+1. **Incondicional:** Toda acción atómica incondicional eventualmente se ejecuta. Round Robin utiliza este fairness.
+2. **Débil:** Es incondicional y además toda acción atómica condicional eventualmente se ejecuta, asumiendo que su condición sea true y permanece true hasta que es vista por el proceso que ejecuta la acción atómica condicional.
+3. **Fuerte:** Es incondicional y además toda acción atómica condicional eventualmente se ejecuta, ya que su guarda se convierte en true con frecuencia infinita. No se puede implementar.
