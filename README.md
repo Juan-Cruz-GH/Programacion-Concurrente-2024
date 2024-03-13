@@ -1,6 +1,6 @@
 # Repositorio del redictado de Programación Concurrente 2024, Facultad de Informática, UNLP.
 
-## Importante 
+## Importante
 
 -   [Material de la cátedra](https://ideas.info.unlp.edu.ar/programacion-concurrente-atic-programacion-concurrente-redictado/Contents/Material/View/Show?idCourseTool=30e0e6e4-27f5-11e6-b67b-9e71128cae77)
 -   [Playlist con todas las explicaciones prácticas](https://www.youtube.com/playlist?list=PLh1hBGMP6WyWN_7bQ9ov-yH86NQHwrgdo)
@@ -12,7 +12,7 @@
 
 ## TODO
 
-- Terminar explicación práctica 1.
-- Terminar teoría 2.
-- Descargar y subir teoría 3, explicación práctica 1, práctica 1.
-- Hacer práctica 1 y consultar ejercicios el lunes 18/3 y el jueves 21/3.
+-   Terminar explicación práctica 1.
+-   Terminar teoría 2.
+-   Descargar y subir teoría 3.
+-   Hacer práctica 1 y consultar ejercicios el lunes 18/3, jueves 21/3 y lunes 25/3.
