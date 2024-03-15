@@ -15,5 +15,4 @@
 ## TODO
 
 -   Terminar explicación práctica 1.
--   Terminar teoría 2.
 -   Hacer práctica 1 y consultar ejercicios el lunes 18/3, jueves 21/3 y lunes 25/3.

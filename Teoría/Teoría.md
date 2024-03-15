@@ -215,18 +215,20 @@ N procesos independientes.
 
 </center>
 
-## Acciones atómicas y sincronización
+## Acciones atómicas
 
 #### Estado de un programa concurrente
 
-El estado de un PC son los valores que tienen todas las variables (privadas y compartidas) cuando detenemos la ejecución en un instante de tiempo determinado.
+El estado de un PC son los valores que tienen todas las variables (locales y compartidas) cuando detenemos la ejecución en un instante de tiempo determinado.
 
 #### Acciones atómicas
 
-Acción que no puede descomponerse en acciones más pequeñas.
+Cada sentencia (línea) puede estar formada por 1 o más acciones atómicas.
 
-- De grano **fino**: las "reales", es decir las de hardware.
-- De grano **grueso**: simuladas vía mutex.
+Una acción atómica es una acción que no puede descomponerse en acciones más pequeñas, y por ende no se puede interrumpir o interferir por otros procesos.
+
+-   De grano **fino**: las "reales", es decir las de hardware.
+-   De grano **grueso**: simuladas vía mutex.
 
 Por ejemplo, A = B (asignar una variable a otra) NO es atómica, pero A = 1 si lo es.
 
@@ -234,7 +236,7 @@ Load PosMemA, registro // es atómica de grano fino.
 
 #### Historias de un programa concurrente
 
-Secuencia de acciones atómicas que se van ejecutando en cada proceso. Algunas historias serán válidas y otras no. Hay que evitar, mediante restricciones, las historias no válidas.
+Secuencia de acciones atómicas que se van ejecutando en cada proceso. Algunas historias serán válidas y otras no, ya que romperían la lógica o semántica del problema a resolver. Hay que evitar, mediante restricciones, las historias no válidas.
 
 #### Tiempos e intuición
 
@@ -242,32 +244,42 @@ Nunca asumir nada sobre los tiempos de ejecución y no confiar en la intuición 
 
 #### Referencia crítica
 
-Leer el valor de una variable que es modificada por otro proceso.
+Significa leer el valor de una variable que es modificada por otro proceso.
 
 #### Propiedad "a lo sumo una vez"
 
 Una asignación a = b satisface esta propiedad si cumple cualquiera de estas 2 condiciones:
+
 1. **b** contiene A LO SUMO una referencia crítica y **a** no es referenciada por otro proceso.
 2. **b** no contiene ninguna referencia crítica, en cuyo caso **a** puede ser leída por otro proceso.
 
-- En resumen, puede haber a lo sumo una variable compartida y puede ser referenciada a lo sumo una vez.
+-   En resumen, puede haber a lo sumo una variable compartida y puede ser referenciada a lo sumo una vez.
+-   Si una asignación cumple la propriedad ASV entonces su ejecución simula ser atómica.
+-   Si una asignación NO cumple la propiedad ASV entonces es necesario ejecutarla atómicamente.
 
-- Si una expresión o asignación NO cumple la propiedad ASV es necesario ejecutarla atómicamente.
+## Sincronización
 
 #### Sentencia <> y await
 
+La sincronización por exclusión mutua construye una acción atómica de grano grueso.
+
 ```
-< Sentencias > 
+< Sentencia/s >
 ```
-- **Await para exclusión mutua.** Significa que todas las instrucciones que se encuentran dentro de estos dos símbolos se ejecuta de forma atómica.
+
+-   **Await para exclusión mutua (incondicional).** Significa que todas las instrucciones que se encuentran dentro de estos dos símbolos se ejecuta de forma atómica.
+
 ```
-< await (condición) Sentencias > 
+< await (condición) Sentencia/s >k
 ```
-- **Await general.** Significa que mientras la condición sea falsa el proceso espera/hace busy waiting (NO SE DUERME). Cuando es verdadera ejecuta en forma atómica las sentencias.
+
+-   **Await general (condicional).** Significa que mientras la condición sea falsa el proceso espera/hace busy waiting (NO SE DUERME). Cuando es verdadera ejecuta en forma atómica las sentencias.
+
 ```
-< await (condición) > 
+< await (condición) >
 ```
-- **Await para sincronización por condición.** Significa que mientras la condición sea falsa el proceso espera/hace busy waiting (NO SE DUERME). Cuando es verdadera sale del await.
+
+-   **Await para sincronización por condición (condicional).** Significa que mientras la condición sea falsa el proceso espera/hace busy waiting (NO SE DUERME). Cuando es verdadera sale del await.
 
 ## Propiedades y fairness
 
@@ -275,24 +287,38 @@ Una propiedad de un PC es un atributo que siempre es verdadero en todas las hist
 
 #### Propiedades de seguridad vs de vida
 
-- **Seguridad:** Que no haya errores o cosas raras.
-   - ?
-   - ?
-   - Corrección parcial -> Siempre que el programa termina, termina "bien", es decir da un resultado correcto. No asegura que el programa termine en sí.
+-   **Seguridad:** Que no haya errores o cosas raras.
 
-- **Vida:** Que ningun proceso se atasque.
-   - Ausencia de deadlock -> ningun proceso se atasca para siempre.
-   - Terminación -> el programa siempre terminará. No asegura que el resultado final sea correcto o no.
+    -   Nada malo le ocurre a un proceso.
+    -   Corrección parcial -> Siempre que el programa termina, termina "bien", es decir da un resultado correcto. No asegura que el programa termine en sí.
+
+-   **Vida:** Que ningun proceso se atasque.
+    -   Ausencia de deadlock -> ningun proceso se atasca para siempre.
+    -   Terminación -> el programa siempre terminará. No asegura que el resultado final sea correcto o no.
 
 Si se cumplen ambas propiedades, tenemos **total correctness**.
 
+#### Acciones atómicas elegibles
+
+Una acción atómica es elegible si es la próxima acción atómica en el proceso que será ejecutada. Si tenemos varios procesos tenemos varias acciones atómicas elegibles, y la política de scheduling decidirá cuál de todas ellas será la próxima en ejecutarse.
+
 #### Fairness y políticas de scheduling
 
-- **Fairness:** Intenta garantizar que todos los procesos tengan chance de avanzar.
-- **Política de scheduling:** Según la configuración del sistema operativo, se elegirá como siguiente a ejecutar una acción atómica de uno u otro proceso.
+-   **Fairness:** Intenta garantizar que todos los procesos tengan chance de avanzar.
+-   **Política de scheduling:** Según la configuración del sistema operativo, se elegirá como siguiente a ejecutar una acción atómica de uno u otro proceso.
 
 #### Tipos de fairness
 
-1. **Incondicional:** Toda acción atómica incondicional eventualmente se ejecuta. Round Robin utiliza este fairness.
-2. **Débil:** Es incondicional y además toda acción atómica condicional eventualmente se ejecuta, asumiendo que su condición sea true y permanece true hasta que es vista por el proceso que ejecuta la acción atómica condicional.
-3. **Fuerte:** Es incondicional y además toda acción atómica condicional eventualmente se ejecuta, ya que su guarda se convierte en true con frecuencia infinita. No se puede implementar.
+1. **Incondicional:** Toda acción atómica incondicional elegible eventualmente se ejecuta.
+   Round Robin utiliza este fairness.
+2. **Débil:** Es incondicional y además toda acción atómica condicional elegible eventualmente se ejecuta, asumiendo que su condición sea true y permanece true hasta que es vista por el proceso que ejecuta la acción atómica condicional.
+3. **Fuerte:** Es incondicional y además toda acción atómica condicional eventualmente se ejecuta, ya que su guarda se convierte en true con frecuencia infinita.
+   No se puede implementar.
+
+---
+
+<center>
+
+# Clase 3
+
+</center>
