@@ -14,5 +14,18 @@
 
 ## TODO
 
--   Terminar explicación práctica 1.
--   Hacer práctica 1 y consultar ejercicios el lunes 18/3, jueves 21/3 y lunes 25/3.
+1.
+
+-   Hacer ejercicios 2 y 3 de la práctica 1 (hoy).
+-   Consultar ejercicios 1 2 y 3 (lunes).
+
+2.
+
+-   Hacer ejercicios 4 5 y 6 de la práctica 1 (martes).
+
+-   Consultar ejercicios 4 5 y 6 (jueves).
+
+3.
+
+-   Hacer ejercicios 7 y 8 de la práctica 1 (viernes).
+-   Consultar ejercicios 7 y 8 (lunes).
