@@ -270,7 +270,7 @@ La sincronización por exclusión mutua construye una acción atómica de grano 
 -   **Await para exclusión mutua (incondicional).** Significa que todas las instrucciones que se encuentran dentro de estos dos símbolos se ejecuta de forma atómica.
 
 ```
-< await (condición) Sentencia/s >k
+< await (condición) Sentencia/s >
 ```
 
 -   **Await general (condicional).** Significa que mientras la condición sea falsa el proceso espera/hace busy waiting (NO SE DUERME). Cuando es verdadera ejecuta en forma atómica las sentencias.
