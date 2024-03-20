@@ -16,16 +16,9 @@
 
 1.
 
--   Hacer ejercicios 2 y 3 de la práctica 1 (hoy).
--   Consultar ejercicios 1 2 y 3 (lunes).
+-   Consultar ejercicios 1 2 3 4 5 y 6 (jueves).
 
 2.
-
--   Hacer ejercicios 4 5 y 6 de la práctica 1 (martes).
-
--   Consultar ejercicios 4 5 y 6 (jueves).
-
-3.
 
 -   Hacer ejercicios 7 y 8 de la práctica 1 (viernes).
 -   Consultar ejercicios 7 y 8 (lunes).
