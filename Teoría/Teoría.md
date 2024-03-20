@@ -1,6 +1,6 @@
 <center>
 
-# Clase 1
+# Clase 1 - 6 de marzo, 2024
 
 </center>
 
@@ -211,7 +211,7 @@ N procesos independientes.
 
 <center>
 
-# Clase 2
+# Clase 2 - 13 de marzo, 2024
 
 </center>
 
@@ -319,6 +319,79 @@ Una acción atómica es elegible si es la próxima acción atómica en el proces
 
 <center>
 
-# Clase 3
+# Clase 3 - 20 de marzo, 2024
 
 </center>
+
+## Problema de la Sección Crítica
+
+-   Se busca que un pedazo de código se ejecute de forma atómica de forma real, sin usar pseudocódigo como el await o < >.
+-   Necesitamos un protocolo de entrada y uno de salida, es decir debemos implementar el "<" y el ">".
+-   Es decir: bloqueo -> sección crítica -> liberación
+
+#### Propiedades que la Sección Crítica debe cumplir
+
+1. A lo sumo un proceso está en su sección crítica.
+2. Si 2 o más procesos intentan entrar a la sección crítica, si o si uno de ellos tendrá éxito (ausencia de deadlock).
+3. Si un proceso intenta entrar a la sección crítica y todos los demás ya terminaron o están ejecutando la sección no crítica, entonces ese proceso debe poder entrar inmediatamente a su SC, sin demora (ausencia de demora innecesaria).
+4. Si un proceso intenta entrar a la sección crítica eventualmente lo hará (ausencia de inanición).
+
+#### Traducción de sentencias await a while loops
+
+...
+
+#### Solución de "grano grueso"
+
+...
+
+#### Solución de grano fino 1: Spin Locks
+
+-   Se trata de una solución **no fair**
+    ...
+
+#### Solución de grano fino 2: Tie-Breaker
+
+-   Se trata de una solución **fair**, que intenta balancear el acceso a la sección crítica entre muchos procesos, para evitar inanición.
+-   Se vuelve extremadamente complejo en la versión de N procesos.
+    ...
+
+#### Solución de grano fino 3: Ticket
+
+-   Otra solución **fair** pero más simple y eficiente.
+-   Usa el Fetch-and-Add.
+-   Podría sufrir de integer overflow eventualmente.
+
+#### Solución de grano fino 4: Bakery
+
+-   Otra solución **fair** un poco más compleja.
+-   Es teórica, no implementable.
+
+## Sincronización Barrier
+
+Una barrera es un punto de **demora** al cual TODOS los procesos deben llegar y una vez que ésto ocurre se les permite pasar a todos a la vez.
+
+#### Método 1: Contador compartido
+
+-   Cada proceso incrementa una variable compartida al llegar.
+-   Cuando esa VC == cantidad de procesos, entonces los procesos pueden pasar.
+-   Se puede implementar de forma grano fino con Fetch-and-Add.
+-   Poco práctico cuando necesitamos más de una barrera en un mismo programa concurrente.
+
+#### Método 2: Flags y coordinadores
+
+-   Tenemos un arreglo de N posiciones donde cada posición tendrá 0 o 1 dependiendo si ese proceso ya llegó o no. Cuando la suma de todas las posiciones de ese arreglo == N, ya llegaron todos y podemos levantar la barrera.
+-   Requiere un proceso extra Coordinador.
+-   Permite utilizar tantas barreras como queramos en un mismo programa concurrente.
+
+#### Método 3: Árboles
+
+-   Requiere un proceso y procesador extra.
+    ...
+
+#### Método 4: Barreras Simétricas
+
+...
+
+## Defectos de la sincronización por busy waiting
+
+...
