@@ -323,6 +323,8 @@ Una acción atómica es elegible si es la próxima acción atómica en el proces
 
 </center>
 
+-   [Link a la clase](https://drive.google.com/file/d/1rvUdra_2C5l11c2yCAn61pszhDuRUyqL/view?usp=sharing)
+
 ## Problema de la Sección Crítica
 
 -   Se busca que un pedazo de código se ejecute de forma atómica de forma real, sin usar pseudocódigo como el await o < >.
