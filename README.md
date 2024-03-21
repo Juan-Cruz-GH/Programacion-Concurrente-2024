@@ -14,7 +14,6 @@
 
 ## TODO
 
--   Consultar ejercicios 1 2 3 4 5 y 6 (jueves).
 -   Hacer ejercicios 7 y 8 de la práctica 1 (viernes).
 -   Terminar apuntes teoría 3 (sábado).
 -   Consultar ejercicios 7 y 8 (lunes).
