@@ -329,7 +329,7 @@ Una acción atómica es elegible si es la próxima acción atómica en el proces
 
 -   Se busca que un pedazo de código se ejecute de forma atómica de forma real, sin usar pseudocódigo como el await o < >.
 -   Necesitamos un protocolo de entrada y uno de salida, es decir debemos implementar el "<" y el ">".
--   Es decir: bloqueo -> sección crítica -> liberación
+-   Es decir: bloqueo -> sección crítica -> liberación.
 
 #### Propiedades que la Sección Crítica debe cumplir
 
@@ -340,33 +340,221 @@ Una acción atómica es elegible si es la próxima acción atómica en el proces
 
 #### Traducción de sentencias await a while loops
 
-...
+-   Las 3 sentencias await se pueden traducir a código real una vez que obtengamos los protocolos de entrada a la sección crítica:
+
+```
+< Sentencia/s >
+
+se traduce a:
+
+Protocolo de entrada;
+Sentencia/s;
+Protocolo de salida;
+```
+
+```
+< await (condición) Sentencia/s >
+
+se traduce a:
+
+Protocolo de entrada;
+while (not condición) {
+   Protocolo de salida;
+   Protocolo de entrada;
+}
+Sentencia/s;
+Protocolo de salida;
+```
+
+```
+< await (condición) >
+
+se traduce a:
+
+while (not condición) skip
+```
 
 #### Solución de "grano grueso"
 
-...
+-   Se trata de una solución (aún ficticia ya que usa await, pseudocódigo) que permite evitar usar los "< >" y usar solo el await, para lograr mutex en una sección crítica.
+-   Para 2 procesos:
+
+```cs
+bool lock = false;
+
+process SC1 {
+   while true {
+      < await (not lock) lock = true; >
+      // sección crítica;
+      lock = false;
+      // sección no crítica
+   }
+}
+
+process SC2 {
+   while true {
+      < await (not lock) lock = true; >
+      // sección crítica;
+      lock = false;
+      // sección no crítica
+   }
+}
+```
+
+-   Para N procesos:
+
+```cs
+bool lock = false;
+
+process SC [id: 1..N] {
+   while true {
+      < await (not lock) lock = true; >
+      // sección crítica;
+      lock = false;
+      // sección no crítica
+   }
+}
+```
 
 #### Solución de grano fino 1: Spin Locks
 
--   Se trata de una solución **no fair**
-    ...
+-   Se trata de una solución **no fair** que busca reemplazar el await por instrucciones reales de máquina.
+-   Utiliza la instrucción de máquina Test and Set (TS) que funciona de la siguiente manera:
+
+```cs
+func bool TS(bool ok) {
+   < bool inicial = ok;
+   ok = true;
+   return inicial; >
+}
+```
+
+-   Spin Locks para N procesos:
+
+```cs
+bool lock = false;
+
+process SC [id: 1..N] {
+   while true {
+      while (TS(lock)) skip;
+      // sección crítica;
+      lock = false;
+      // sección no crítica
+   }
+}
+```
+
+-   Se puede mejorar un poco la performance usando la instrucción Test and Test and Set, la cual no escribe en la variable lock si el valor no ha cambiado, pero aún así sigue sin ser ideal.
 
 #### Solución de grano fino 2: Tie-Breaker
 
 -   Se trata de una solución **fair**, que intenta balancear el acceso a la sección crítica entre muchos procesos, para evitar inanición.
 -   Se vuelve extremadamente complejo en la versión de N procesos.
-    ...
+-   Tie-Breaker para 2 procesos:
+
+```cs
+bool in1 = false, in2 = false;
+int ultimo = 1;
+
+process SC1 {
+   while true {
+      in1 = true;
+      ultimo = 1;
+      while (in2 and ultimo == 1) skip;
+      // sección crítica
+      in1 = false;
+      // sección no crítica
+   }
+}
+process SC2 {
+   while true {
+      in2 = true;
+      ultimo = 2;
+      while (in1 and ultimo == 2) skip;
+      // sección crítica
+      in2 = false;
+      // sección no crítica
+   }
+}
+```
+
+-   Tie-Breaker para N procesos. Demasiado complejo:
+
+```cs
+int in[1..N] = ([N] 0);
+int ultimo[1..N] = ([N] 0);
+
+process SC [i: 1..N] {
+   while true {
+      for j = 1 to N {
+         in[i] = j;
+         ultimo[j] = i;
+         for k = 1 to N st i <> k {
+            // espera si el proceso kj está en una etapa más alta y el proceso i fue el último en entrar a la etapa j
+            while (in[k] >= in[i] and ultimo[j] == i) skip;
+         }
+      }
+      // sección crítica;
+      in[i] = 0;
+      // sección no crítica;
+   }
+}
+```
 
 #### Solución de grano fino 3: Ticket
 
 -   Otra solución **fair** pero más simple y eficiente.
--   Usa el Fetch-and-Add.
+-   Los procesos toman un número mayor que el del último proceso que sacó un ticket, y esperan a ser atendidos por orden de este ticket.
 -   Podría sufrir de integer overflow eventualmente.
+-   Usa el Fetch-and-Add (FA) que funciona de la siguiente manera:
+
+```cs
+func FA(int var, int incremento) {
+   < temp = var;
+   var = var + incremento;
+   return temp; >
+}
+```
+
+-   Ticket para N procesos:
+
+```cs
+int numero = 1;
+int proximo = 1;
+int turno[1..N] = ([N] 0);
+
+process SC [i: 1..N] {
+   while true {
+      turno[i] = FA(numero, 1);
+      while (turno[i] <> proximo) skip;
+      // sección crítica
+      proximo = proximo + 1;
+      // sección no crítica
+   }
+}
+```
 
 #### Solución de grano fino 4: Bakery
 
 -   Otra solución **fair** un poco más compleja.
 -   Es teórica, no implementable.
+-   Bakery para N procesos:
+
+```cs
+int turno[1..N] = ([N] 0);
+
+process SC [i: 1..N] {
+   while true {
+      turno[i] = 1; // comienza el protocolo de entrada
+      turno[i] = max(turno) + 1;
+      for j = 1 to N st j != i
+         while (turno[j] != 0) and ( (turno[i], i) > (turno[j], j)) skip;
+      // sección crítica
+      turno[i] = 0;
+      // sección no crítica
+   }
+}
+```
 
 ## Sincronización Barrier
 
@@ -376,24 +564,95 @@ Una barrera es un punto de **demora** al cual TODOS los procesos deben llegar y 
 
 -   Cada proceso incrementa una variable compartida al llegar.
 -   Cuando esa VC == cantidad de procesos, entonces los procesos pueden pasar.
--   Se puede implementar de forma grano fino con Fetch-and-Add.
 -   Poco práctico cuando necesitamos más de una barrera en un mismo programa concurrente.
+-   Se puede implementar de forma grano fino con Fetch-and-Add:
+
+```cs
+int cantidad = 0;
+process worker[id: 1..N] {
+   while true {
+      FA(cantidad, 1);
+      while (cantidad <> N) skip;
+   }
+}
+```
 
 #### Método 2: Flags y coordinadores
 
 -   Tenemos un arreglo de N posiciones donde cada posición tendrá 0 o 1 dependiendo si ese proceso ya llegó o no. Cuando la suma de todas las posiciones de ese arreglo == N, ya llegaron todos y podemos levantar la barrera.
 -   Requiere un proceso extra Coordinador.
 -   Permite utilizar tantas barreras como queramos en un mismo programa concurrente.
+-   Reintroduce contención de memoria y es ineficiente.
+-   Flags y coordinadores:
 
-#### Método 3: Árboles
+```cs
+int arribo[1..N] = ([N] 0);
+int continuar[1..N] = ([N] 0);
+
+process worker[id: 1..N] {
+   while true {
+      arribo[i] = 1;
+      while (continuar[i] == 0) skip;
+      continuar[i] = 0;
+   }
+}
+process Coordinador {
+   while true {
+      for i = 1 to N {
+         while (arribo[i] == 0) skip;
+         arribo[i] = 0;
+      }
+      for i = 1 to N {
+         continuar[i] = 1;
+      }
+   }
+}
+```
+
+#### Método 3: Árboles (combining tree barrier)
 
 -   Requiere un proceso y procesador extra.
-    ...
+-   Se complejiza la solución ya que los procesos pueden jugar distintos roles (hoja, raíz, nodo interno), aunque es eficiente.
+-   Los procesos van avisando que llegaron, desde las hojas hasta la raíz, y cuando el proceso raiz recibe las señales de ambos de sus hijos significa que ya llegaron todos, y entonces envía hacia abajo, desde la raíz hasta las hojas, que ya pueden continuar porque la barrera se completó.
 
 #### Método 4: Barreras Simétricas
 
-...
+-   Se basa en que dos procesos se sincronizen entre si, y luego estos 2 sincronizen con otros 2, y luego los 4 con otros 4, y 8 con otros 8, etc etc hasta completar la barrera entera en O(log (N)) en vez de O(N).
+-   Barrera Simétrica para N procesos:
+
+```cs
+int E = log(N);
+int arribo[1..N] = ([N] 0)
+
+process worker[id: 1..N] {
+   int j;
+   while true {
+      // inicio de la barrera
+      for etapa = 1 to E {
+         j = (i-1) XOR (1 << (etapa-1));
+         while (arribo[i] == 1) skip;
+         arribo[i] = 1;
+         while (arribo[j] == 0) skip;
+         arribo[j] = 0;
+      }
+      // fin de la barrera
+   }
+}
+```
 
 ## Defectos de la sincronización por busy waiting
 
-...
+-   Los protocolos de tipo busy waiting o spin locks (sinónimos) no son ideales:
+    -   Son complejos.
+    -   No separan claramente las variables de sincronización de las variables de cómputos.
+    -   Son dificiles de verificar y corregir.
+    -   Son ineficientes si se los utiliza en multiprogramación, ya que un procesador ejecutando un proceso **spinning** podría ser usado de forma más productiva por otro proceso.
+-   Es por todo esto que necesitamos herramientas más potentes para diseñar protocolos de sincronización: **Semáforos y monitores**.
+
+---
+
+<center>
+
+# Clase 4 - 27 de marzo, 2024
+
+</center>
