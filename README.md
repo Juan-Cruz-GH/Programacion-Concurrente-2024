@@ -13,5 +13,3 @@
     2. El trabajo final para levantar nota puede llegar a ser opcional y no obligatorio, lo anunciará el profe.
 
 ## TODO
-
--   Consultar ejercicios 7 y 8 (lunes).
