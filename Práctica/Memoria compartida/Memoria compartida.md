@@ -1,4 +1,8 @@
+<center>
+
 # Variables compartidas
+
+</center>
 
 ## <> y Await
 
@@ -29,6 +33,19 @@
 -   Si queremos que los procesos accedan a la sección crítica según el orden de llegada, necesitamos una Cola compartida que almacenará el orden original de los procesos en la primer iteración, orden que se respetará tal cual en las proximas iteraciones.
 -   Si queremos que los procesos accedan a la sección crítica según el orden de alguno de sus atributos, necesitamos una ColaOrdenada compartida que almacenará el orden original de los procesos en la primer iteración, orden que se respetará tal cual en las proximas iteraciones.
 
+---
+
+<center>
+
 # Semáforos
 
+</center>
+
+
+---
+
+<center>
+
 # Monitores
+
+</center>
