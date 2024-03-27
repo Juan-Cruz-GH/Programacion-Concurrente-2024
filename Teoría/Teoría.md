@@ -656,3 +656,162 @@ process worker[id: 1..N] {
 # Clase 4 - 27 de marzo, 2024
 
 </center>
+
+## Semáforos
+
+Se trata de un **tipo de datos abstracto** (un objeto) que acepta solo 2 operaciones/métodos: P() y V() que se ejecutan de forma **atómica**.
+
+- Internamente posee un atributo integer no negativo.
+- La operación P() duerme al proceso si ese atributo es 0. Si no, lo decrementa en 1. Por eso esta operación es **bloqueante**.
+- La operación V() siempre incrementa el atributo en 1.
+- Los semáforos permiten proteger secciones críticas vía mutex y además permiten implementar sincronización por condición.
+
+#### Operaciones en detalle
+
+- Si o si se inicializan en su declaración:
+
+```cs
+sem mutex = 1; // Correcto
+sem mutex; // Incorrecto
+```
+
+- Operaciones P y V:
+
+```cs
+P(sem) {
+   < await (sem > 0); sem-- >
+}
+
+V(sem) {
+   < sem++ >
+}
+```
+
+#### Sección crítica usando semáforos
+
+Es tan simple como hacer:
+
+```cs
+sem mutex = 1
+...
+P(mutex)
+// sección crítica
+V(mutex)
+// sección no crítica
+```
+
+Si mutex fuese inicializado en 0 todos los procesos se atascarían en el P() y habría deadlock.
+
+#### Barreras 
+
+- Inicializando un semáforo en 0, podemos crear barreras:
+   - El P() simboliza que el proceso 1 está esperando (se duerme) a que un evento ocurra.
+   - El V() simboliza que el proceso 2 señala que un evento ocurrió y ahora el proceso 1 puede seguir.
+
+#### Semáforos binarios divididos
+...
+
+#### Contadores de recursos
+
+Cada semáforo cuenta la cantidad de unidades libres de un recurso compartido. Esto es útil cuando los procesos compiten por recursos de múltiples unidades.
+
+Es decir, tenemos sem libres = N, y cuando hacemos P() simbolizamos que ahora hay una unidad libre **menos** en ese recurso compartido, y cuando hacemos V() simbolizaos que ahora hay una unidad libre **más** en ese recurso compartido.
+
+Si tenemos N consumidores y M productores necesitamos un semáforo mutex para cada uno, ya que hay que proteger la próxima posición en el arreglo compartido para que no se pise el valor.
+
+#### Exclusión mutua selectiva
+
+Se da entre procesos que compiten por el acceso a **conjuntos superpuestos de variables compartidas**. Es decir, N procesos adquieren un recurso cada uno, pero necesitan también un segundo recurso que está siendo utilizado por otro proceso. Se produce deadlock.
+
+#### Técnica Passing The Baton
+
+Se trata de una técnica general para implementar el **await**. 
+
+Cuando un proceso está dentro de la sección crítica mantiene el baton que simboliza su permiso para ejecutar.
+
+Cuando el proceso debe salir de la sección crítica pasa el baton (el control) a otro proceso. **Si ninguno está esperando por el baton (ningun proceso está esperando entrar a la sección crítica) entonces éste se libera para que lo tome el próximo proceso que trata de entrar**.
+
+Esta técnica se utiliza mucho cuando necesitamos cierto orden entre los procesos para utilizar un recurso compartido.
+
+#### Alocación de recursos y scheduling
+
+Hay que decidir cuándo se le puede dar acceso a un recurso compartido a un proceso determinado.
+
+Un recurso es cualquier objeto, elemento, componente, dato, sección crítica, por la que un proceso puede ser demorado esperando adquirirlo.
+
+Tendríamos dos operaciones:
+   - request(parámetros)
+   - release(parámetros)
+
+Puede usarse vía Passing The Baton:
+
+```cs
+request() {
+   P(e);
+   if request no puede ser satisfecho {
+      delay
+   }
+   // tomar unidad
+   SIGNAL;   
+}
+
+release() {
+   P(e);
+   // retornar unidad
+   SIGNAL;
+}
+```
+
+###### Shortest Job Next
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
