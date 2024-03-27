@@ -13,3 +13,6 @@
     2. El trabajo final para levantar nota puede llegar a ser opcional y no obligatorio, lo anunciará el profe.
 
 ## TODO
+
+-   Terminar teoría 4 (jueves).
+-   Hacer ejercicios 1 2 3 de la práctica 2 (domingo).
