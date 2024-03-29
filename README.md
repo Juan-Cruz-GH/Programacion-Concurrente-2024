@@ -14,5 +14,4 @@
 
 ## TODO
 
--   Terminar teoría 4 (jueves).
 -   Hacer ejercicios 1 2 3 de la práctica 2 (domingo).
