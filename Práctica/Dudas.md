@@ -1,4 +1,3 @@
-# Dudas práctica 1
+# Dudas práctica 2
 
--   Está bien el 7? Se cumplen las 4?
--   Está bien el 8?
+-   Están bien ejercicios 1 2 y 3? Sobre todo el **2)c)**.
