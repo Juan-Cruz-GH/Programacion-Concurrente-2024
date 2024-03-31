@@ -659,7 +659,7 @@ process worker[id: 1..N] {
 
 ## Semáforos
 
-Se trata de un **tipo de datos abstracto** (un objeto) que acepta solo 2 operaciones/métodos: P() y V() que se ejecutan de forma **atómica**.
+Se trata de un **tipo de datos abstracto** (un objeto) que acepta solo  2 operaciones/métodos: P() y V() que se ejecutan de forma **atómica**.
 
 - Internamente posee un atributo integer no negativo.
 - La operación P() duerme al proceso si ese atributo es 0. Si no, lo decrementa en 1. Por eso esta operación es **bloqueante**.
@@ -673,6 +673,7 @@ Se trata de un **tipo de datos abstracto** (un objeto) que acepta solo 2 operaci
 ```cs
 sem mutex = 1; // Correcto
 sem mutex; // Incorrecto
+sem mutex[N] = ( [N] 1 ) // Semáforos privados
 ```
 
 - Operaciones P y V:
@@ -700,7 +701,8 @@ V(mutex)
 // sección no crítica
 ```
 
-Si mutex fuese inicializado en 0 todos los procesos se atascarían en el P() y habría deadlock.
+- Si mutex fuese inicializado en 0 todos los procesos se atascarían en el P() y habría deadlock.
+- Si mutex fuese inicializado en 2 por ejemplo, eso significa que 2 procesos podrían estar en la sección crítica a la vez.
 
 #### Barreras 
 
@@ -709,7 +711,12 @@ Si mutex fuese inicializado en 0 todos los procesos se atascarían en el P() y h
    - El V() simboliza que el proceso 2 señala que un evento ocurrió y ahora el proceso 1 puede seguir.
 
 #### Semáforos binarios divididos
-...
+
+Un semáforo binario es uno que solo almacena internamente un 1 o un 0, a diferencia de un semáforo general el cual puede almacenar 0, 1, 2, y siguiendo.
+
+Un semáforo binario dividido ocurre cuando, dado N semáforos binarios, la suma de todos ellos da 0 o 1.
+
+Esta técnica soluciona por ejemplo el problema de N productores y M consumidores en un buffer compartido.
 
 #### Contadores de recursos
 
@@ -722,6 +729,8 @@ Si tenemos N consumidores y M productores necesitamos un semáforo mutex para ca
 #### Exclusión mutua selectiva
 
 Se da entre procesos que compiten por el acceso a **conjuntos superpuestos de variables compartidas**. Es decir, N procesos adquieren un recurso cada uno, pero necesitan también un segundo recurso que está siendo utilizado por otro proceso. Se produce deadlock.
+
+Se puede solucionar diviendo los N procesos entre los N-1 primeros y luego el último separados.
 
 #### Técnica Passing The Baton
 
@@ -762,41 +771,17 @@ release() {
 }
 ```
 
-###### Shortest Job Next
+---
 
+<center>
 
+# Clase 5 - 3 de abril, 2024
 
+</center>
 
+## Monitores
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+## Técnicas con monitores
 
 
 
