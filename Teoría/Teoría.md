@@ -781,6 +781,59 @@ release() {
 
 ## Monitores
 
+#### Conceptos básicos 
+
+- Los monitores son módulos estructurados que contienen **variables** que almacenan el estado del recurso compartido y **procedimientos** que implementan operaciones sobre éste.
+- Representan recursos compartidos.
+- Los procedimientos se ejecutan siempre y de forma implícita con **exclusión mutua**.
+- La sincronización por condición se realizará de forma explícita vía **variables condition**.
+- Un proceso que invoca un procedimiento puede ignorar cómo está implementado (abstracción).
+- Los procedimientos pueden recibir parámetros.
+- No existen más las variables compartidas/globales.
+- Cualquier tipo de sincronización o comunicación entre procesos se debe hacer a través del monitor.
+
+#### Sintaxis
+
+```cs
+monitor NombreMonitor {
+   declaraciones de variables permanentes;
+   código de inicialización; // Se ejecuta una sola vez al INICIO del programa.
+
+   procedure op1(parámetros formales) {
+      cuerpo del procedure 
+   }
+
+   procedure op2(parámetros formales) {
+      cuerpo del procedure
+   }
+}
+
+process Proceso {
+   NombreMonitor.op1(dato1);
+   NombreMonitor.op2(dato2)
+}
+```
+#### Sincronización por condición
+
+Se programa explícitamente con **variables condition** -> cond vc.
+
+- Las variables condition son implícitamente una cola de procesos demorados.
+- Poseen varias operaciones:
+1. wait(vc): el proceso se demora **al final** de la cola y deja el acceso exclusivo al monitor
+2. signal(vc): despierta al proceso **al principio** de la cola (si hay alguno) y lo quita de ella. El proceso despertado podrá recién ejecutar cuando requiera el acceso exclusivo al monitor.
+3. signal_all(vc): despierta a **todos** los procesos demorados en la vc, quedando la cola totalmente vacía. 
+
+##### Sincronización Signal and Continue
+
+El proceso que hace el ***signal*** continúa usando el monitor, y el proceso despertado pasa a **competir por acceder nuevamente** al monitor para continuar con su ejecución (en la instrucción siguiente al wait).
+
+##### Sincronización Signal and Wait
+
+El proceso que hace el ***signal*** pasa a competir por acceder nuevamente al monitor, mientras que el proceso despertado pasa a ejecutar dentro del monitor a partir siguiente al wait.
+
+#### Wait vs P | Signal vs V
+
+
 ## Técnicas con monitores
 
 
