@@ -659,16 +659,16 @@ process worker[id: 1..N] {
 
 ## Semáforos
 
-Se trata de un **tipo de datos abstracto** (un objeto) que acepta solo  2 operaciones/métodos: P() y V() que se ejecutan de forma **atómica**.
+Se trata de un **tipo de datos abstracto** (un objeto) que acepta solo 2 operaciones/métodos: P() y V() que se ejecutan de forma **atómica**.
 
-- Internamente posee un atributo integer no negativo.
-- La operación P() duerme al proceso si ese atributo es 0. Si no, lo decrementa en 1. Por eso esta operación es **bloqueante**.
-- La operación V() siempre incrementa el atributo en 1.
-- Los semáforos permiten proteger secciones críticas vía mutex y además permiten implementar sincronización por condición.
+-   Internamente posee un atributo integer no negativo.
+-   La operación P() duerme al proceso si ese atributo es 0. Si no, lo decrementa en 1. Por eso esta operación es **bloqueante**.
+-   La operación V() siempre incrementa el atributo en 1.
+-   Los semáforos permiten proteger secciones críticas vía mutex y además permiten implementar sincronización por condición.
 
 #### Operaciones en detalle
 
-- Si o si se inicializan en su declaración:
+-   Si o si se inicializan en su declaración:
 
 ```cs
 sem mutex = 1; // Correcto
@@ -676,7 +676,7 @@ sem mutex; // Incorrecto
 sem mutex[N] = ( [N] 1 ) // Semáforos privados
 ```
 
-- Operaciones P y V:
+-   Operaciones P y V:
 
 ```cs
 P(sem) {
@@ -701,14 +701,14 @@ V(mutex)
 // sección no crítica
 ```
 
-- Si mutex fuese inicializado en 0 todos los procesos se atascarían en el P() y habría deadlock.
-- Si mutex fuese inicializado en 2 por ejemplo, eso significa que 2 procesos podrían estar en la sección crítica a la vez.
+-   Si mutex fuese inicializado en 0 todos los procesos se atascarían en el P() y habría deadlock.
+-   Si mutex fuese inicializado en 2 por ejemplo, eso significa que 2 procesos podrían estar en la sección crítica a la vez.
 
-#### Barreras 
+#### Barreras
 
-- Inicializando un semáforo en 0, podemos crear barreras:
-   - El P() simboliza que el proceso 1 está esperando (se duerme) a que un evento ocurra.
-   - El V() simboliza que el proceso 2 señala que un evento ocurrió y ahora el proceso 1 puede seguir.
+-   Inicializando un semáforo en 0, podemos crear barreras:
+    -   El P() simboliza que el proceso 1 está esperando (se duerme) a que un evento ocurra.
+    -   El V() simboliza que el proceso 2 señala que un evento ocurrió y ahora el proceso 1 puede seguir.
 
 #### Semáforos binarios divididos
 
@@ -734,7 +734,7 @@ Se puede solucionar diviendo los N procesos entre los N-1 primeros y luego el ú
 
 #### Técnica Passing The Baton
 
-Se trata de una técnica general para implementar el **await**. 
+Se trata de una técnica general para implementar el **await**.
 
 Cuando un proceso está dentro de la sección crítica mantiene el baton que simboliza su permiso para ejecutar.
 
@@ -749,8 +749,9 @@ Hay que decidir cuándo se le puede dar acceso a un recurso compartido a un proc
 Un recurso es cualquier objeto, elemento, componente, dato, sección crítica, por la que un proceso puede ser demorado esperando adquirirlo.
 
 Tendríamos dos operaciones:
-   - request(parámetros)
-   - release(parámetros)
+
+-   request(parámetros)
+-   release(parámetros)
 
 Puede usarse vía Passing The Baton:
 
@@ -761,7 +762,7 @@ request() {
       delay
    }
    // tomar unidad
-   SIGNAL;   
+   SIGNAL;
 }
 
 release() {
@@ -781,16 +782,16 @@ release() {
 
 ## Monitores
 
-#### Conceptos básicos 
+#### Conceptos básicos
 
-- Los monitores son módulos estructurados que contienen **variables** que almacenan el estado del recurso compartido y **procedimientos** que implementan operaciones sobre éste.
-- Representan recursos compartidos.
-- Los procedimientos se ejecutan siempre y de forma implícita con **exclusión mutua**.
-- La sincronización por condición se realizará de forma explícita vía **variables condition**.
-- Un proceso que invoca un procedimiento puede ignorar cómo está implementado (abstracción).
-- Los procedimientos pueden recibir parámetros.
-- No existen más las variables compartidas/globales.
-- Cualquier tipo de sincronización o comunicación entre procesos se debe hacer a través del monitor.
+-   Los monitores son módulos estructurados que contienen **variables** que almacenan el estado del recurso compartido y **procedimientos** que implementan operaciones sobre éste.
+-   Representan recursos compartidos.
+-   Los procedimientos se ejecutan siempre y de forma implícita con **exclusión mutua**.
+-   La sincronización por condición se realizará de forma explícita vía **variables condition**.
+-   Un proceso que invoca un procedimiento puede ignorar cómo está implementado (abstracción).
+-   Los procedimientos pueden recibir parámetros.
+-   No existen más las variables compartidas/globales.
+-   Cualquier tipo de sincronización o comunicación entre procesos se debe hacer a través del monitor.
 
 #### Sintaxis
 
@@ -800,7 +801,7 @@ monitor NombreMonitor {
    código de inicialización; // Se ejecuta una sola vez al INICIO del programa.
 
    procedure op1(parámetros formales) {
-      cuerpo del procedure 
+      cuerpo del procedure
    }
 
    procedure op2(parámetros formales) {
@@ -813,43 +814,244 @@ process Proceso {
    NombreMonitor.op2(dato2)
 }
 ```
+
 #### Sincronización por condición
 
 Se programa explícitamente con **variables condition** -> cond vc.
 
-- Las variables condition son implícitamente una cola de procesos demorados.
-- Poseen varias operaciones:
+-   Las variables condition son implícitamente una cola de procesos demorados.
+-   Poseen varias operaciones:
+
 1. wait(vc): el proceso se demora **al final** de la cola y deja el acceso exclusivo al monitor
 2. signal(vc): despierta al proceso **al principio** de la cola (si hay alguno) y lo quita de ella. El proceso despertado podrá recién ejecutar cuando requiera el acceso exclusivo al monitor.
-3. signal_all(vc): despierta a **todos** los procesos demorados en la vc, quedando la cola totalmente vacía. 
+3. signal_all(vc): despierta a **todos** los procesos demorados en la vc, quedando la cola totalmente vacía.
 
 ##### Sincronización Signal and Continue
 
-El proceso que hace el ***signal*** continúa usando el monitor, y el proceso despertado pasa a **competir por acceder nuevamente** al monitor para continuar con su ejecución (en la instrucción siguiente al wait).
+El proceso que hace el **_signal_** continúa usando el monitor, y el proceso despertado pasa a **competir por acceder nuevamente** al monitor para continuar con su ejecución (en la instrucción siguiente al wait).
 
 ##### Sincronización Signal and Wait
 
-El proceso que hace el ***signal*** pasa a competir por acceder nuevamente al monitor, mientras que el proceso despertado pasa a ejecutar dentro del monitor a partir siguiente al wait.
+El proceso que hace el **_signal_** pasa a competir por acceder nuevamente al monitor, mientras que el proceso despertado pasa a ejecutar dentro del monitor a partir siguiente al wait.
 
-#### Wait vs P | Signal vs V
+#### Wait vs P y Signal vs V
 
+| Wait                              | P                                                  |
+| --------------------------------- | -------------------------------------------------- |
+| El proceso **siempre** se duerme. | El proceso solo se duerme **si el semáforo es 0.** |
+
+| Signal                                                                                                   | V                                                                                                                       |
+| -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Si hay procesos dormidos despierta al **primero** de ellos. En caso contrario no tiene efecto posterior. | Incrementa el semáforo para que un proceso dormido o que hará un P continue. No sigue **ningún orden** al despertarlos. |
+
+#### Operaciones adicionales (puramente teóricas)
+
+-   **_empty(cv)_**: retorna true si la controla controlada por cv está vacía.
+-   **_wait(cv, rank)_**: el proceso se demora en la cola de cv en orden **ascendente** de acuerdo al parámetro rank y deja acceso exclusivo al monitor.
+-   **_minrank(cv)_**: retorna el minimo ranking de demora.
 
 ## Técnicas con monitores
 
+#### Simulando un semáforo
 
+-   Hay que usar un **while** y no un **if** para evitar que el semáforo pueda tener valor menor a 0.
 
+-   La diferencia es que en esta solución hay un orden parcial, la operación V despierta al primero que se durmió, en vez de liberar el semáforo para que **cualquiera** lo tome como ocurría en los semáforos. El orden "parcial" se debe a que un proceso le gane el acceso al proceso que acaba de ser despertado. El orden solo ocurre entre los procesos que se **habían dormido**, por eso es parcial.
 
+-   Para que esta solución sea idéntica a un semáforo se debería hacer un **_signal_all(pos)_** en vez de **_signal(pos)_**.
 
+```cs
+monitor Semaforo {
+   int s = 1;
+   cond pos;
 
+   procedure P() {
+      while (s == 0)
+         wait(pos);
+      s--;
+   }
 
+   procedure V() {
+      s++;
+      signal(pos);
+   }
+}
+```
 
+#### Passing The Condition
 
+-   Esta solución es fair y respeta por completo el orden de llegada.
 
+```cs
+monitor Semaforo {
+   int s = 1;
+   int espera = 0; // Cuenta cuántos procesos están dormidos en la variable condición.
+   cond pos;
 
+   procedure P() {
+      if (s == 0) {
+         espera++;
+         wait(pos);
+      }
+      else
+         s--;
+   }
 
+   procedure V() {
+      if (espera == 0) {
+         s++;
+      }
+      else {
+         espera--;
+         signal(pos);
+      }
+   }
+}
+```
 
+#### Alocación SJN: Wait con Prioridad
 
+-   Como no podemos usar el empty en una variable condition, usamos una colaOrdenada auxiliar.
 
+```cs
+monitor Semaforo {
+   bool libre = true;
+   cond turno[N];
+   colaOrdenada espera;
 
+   procedure request(int id, int tiempo) {
+      if (libre)
+         libre = false;
+      else {
+         espera.push(id, tiempo)
+         wait(turno[id])
+      }
+   }
 
+   procedure release() {
+      if (empty(espera))
+         libre = true;
+      else {
+         id = espera.pop().id
+         signal(turno[id]);
+      }
 
+   }
+}
+```
+
+#### Buffer limitado: Sincronización por condición básica
+
+```cs
+monitor BufferLimitado {
+   typeT buf[N];
+   int ocupado, libre, cantidad = 0;
+   cond not_lleno, not_vacio;
+
+   procedure depositar(typeT datos) {
+      while (cantidad == n)
+         wait (not_lleno);
+      buf[libre] = datos;
+      libre = (libre + 1) MOD N;
+      cantidad++;
+      signal(not_vacio);
+   }
+
+   procedure retirar(typeT &resultado) {
+      while (cantidad == 0)
+         wait(not_vacio);
+      resultado = buf[ocupado];
+      ocupado = (ocupado + 1) MOD N;
+      cantidad--;
+      signal(not_lleno);
+   }
+}
+```
+
+#### Lectores y Escritores: Broadcast Signal
+
+-   Cuando se dan las condiciones todos los procesos compiten y uno de ellos entra sin ningún tipo de orden.
+
+```cs
+monitor Controlador_RW {
+   int cantLectores, cantEscritores = 0;
+   cond ok_leer, ok_escribir;
+
+   procedure pedido_leer( ) {
+      while (cantEscritores > 0)
+         wait (ok_leer);
+      cantLectores++;
+   }
+
+   procedure libera_leer( ) {
+      cantLectores--;
+      if (cantLectores == 0)
+         signal (ok_escribir);
+   }
+
+   procedure pedido_escribir( ) {
+      while (cantLectores > 0) OR (cantEscritores > 0)
+         wait (ok_escribir);
+      cantEscritores++;
+   }
+
+   procedure libera_escribir( ) {
+      cantEscritores--;
+      signal (ok_escribir);
+      signal_all (ok_leer);
+   }
+}
+```
+
+#### Lectores y Escritores: Passing The Condition
+
+-   Mayor control de a quién dejamos pasar una vez la DB está libre.
+
+```cs
+monitor Controlador_RW {
+   int cantLectores = 0, cantEscritores = 0, lectoresDormidos = 0, escritoresDormidos = 0;
+   cond ok_leer, ok_escribir
+
+   procedure pedido_leer() {
+      if (cantEscritores > 0) {
+         lectoresDormidos++;
+         wait(ok_leer);
+      }
+      else
+         cantLectores++;
+   }
+
+   procedure libera_leer() {
+      cantLectores--;
+      if (cantLectores == 0) and (escritoresDormidos > 0) {
+         escritoresDormidos--;
+         signal(ok_escribir);
+         cantEscritores++;
+      }
+   }
+
+   procedure pedido_escribir() {
+      if (cantLectores > 0) OR (cantEscritores > 0) {
+         escritoresDormidos++;
+         wait(ok_escribir);
+      }
+      else
+         cantEscritores++;
+   }
+
+   procedure libera_escribir() {
+      if (escritoresDormidos > 0) {
+         escritoresDormidos--;
+         signal(ok_escribir);
+      }
+      else {
+         cantEscritores--;
+         if (lectoresDormidos > 0) {
+            cantLectores = lectoresDormidos;
+            lectoresDormidos = 0;
+            signal_all(ok_leer);
+         }
+      }
+   }
+}
+```
