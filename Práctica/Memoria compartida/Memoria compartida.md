@@ -44,33 +44,32 @@
 ## Declaraciones
 
 ```cs
-sem s; // Incorrecto! Se deben inicializar en la declaración.
-sem mutex = 1;
-sem espera[5] = ( [5] 1 ) // Arreglo de 5 semáforos, todos inicializados en 1.
+sem s; // ❌ Se deben inicializar en la declaración.
+sem mutex = 1; // ✅ Inicializar un sem en 1 significa que 1 solo proceso a la vez podrá estar en la sección crítica.
+sem espera[5] = ( [5] 1 ) // ✅ Arreglo de 5 semáforos, todos inicializados en 1. También llamados semáforos privados.
 ```
 
 ## Operaciones
 
-- P(s): puede demorar al proceso.
+-   P(s): **puede demorar** al proceso.
+
 ```cs
-{ await ( s > 0 ); s = s - 1; }
+{ await (s > 0); s--; }
 ```
 
-- V(s): nunca demora al proceso.
+-   V(s): **nunca demora** al proceso.
+
 ```cs
-{ s = s + 1; }
+{ s++; }
 ```
 
 ## Notas generales
 
-- Nuevamente hay que **achicar lo más posible las secciones críticas**: es decir, cuando usamos un semáforo mutex = 1, lo que esté dentro del P y el V tiene que ser lo más acotado posible. Es por esto que, al igual que en Variables Compartidas, podemos por ejemplo usar contadores locales dentro del bucle que ejecutan muchos procesos, y al finalizar ese bucle actualizar la variable global con esos contadores locales, minimizando drásticamente la cantidad de bloqueos y liberaciones de la sección crítica.
+-   Nuevamente hay que **achicar lo más posible las secciones críticas**: es decir, cuando usamos un semáforo mutex = 1, lo que esté dentro del P y el V tiene que ser lo más acotado posible. Es por esto que, al igual que en Variables Compartidas, podemos por ejemplo usar contadores locales dentro del bucle que ejecutan muchos procesos, y al finalizar ese bucle actualizar la variable global con esos contadores locales, minimizando drásticamente la cantidad de bloqueos y liberaciones de la sección crítica.
+-   Hay que tener mucho cuidado al inicializar semáforos en 0. Se puede producir deadlock fácilmente si no lo hacemos bien.
+-   Cosas que estén relacionadas entre sí deben ir en una misma sección crítica, no en 2 o más secciones críticas separadas. Análogamente, no tiene sentido usar el mismo semáforo para 2 secciones críticas separadas.
+-   Barrera de un uso, donde queremos despertar a todos a la vez:
 
-- Hay que tener mucho cuidado al inicializar semáforos en 0. Se puede producir deadlock fácilmente si no lo hacemos bien.
-
-- Cosas que estén relacionadas entre sí deben ir en una misma sección crítica, no en 2 o más secciones críticas separadas. Análogamente, no tiene sentido usar el mismo semáforo para 2 secciones críticas separadas.
-
-
-- Barrera de un uso, donde queremos despertar a todos a la vez:
 ```cs
 sem mutex = 1;
 sem barrera = 0;
@@ -86,7 +85,8 @@ V(mutex)
 P(barrera)
 ```
 
-- Barrera de un uso, donde queremos despertar a todos a la vez, vía un Coordinador:
+-   Barrera de un uso, donde queremos despertar a todos a la vez, vía un Coordinador:
+
 ```cs
 sem espera = 0;
 sem barrera = 0;
@@ -95,24 +95,26 @@ V(espera)
 P(barrera)
 ---
 // Coordinador
-for i = 0 to N - 1 {
+for i = 0 to N-1 {
     P(espera)
 }
-for i = 0 to N - 1 {
+for i = 0 to N-1 {
     V(barrera)
 }
 
 ```
 
-- Cuando queremos despertar a proceso/s en particular, necesitamos **semáforos privados** (arreglo de semáforos).
+-   Cuando queremos despertar a proceso/s en particular, o enviarle datos a proceso/s en particular, necesitamos **semáforos privados** (arreglo de semáforos).
+-   Si estamos en un bucle no hay que preguntar si la cola está vacía, ya que causamos busy waiting. Tenemos que tener un semáforo contador que se inicializa en 0 y que va a tener en todo momento la cantidad de elementos en la cola, y los procesos harán un V sobre ese semáforo cada vez que pusheen algo. El coordinador hará un P, para esperar que haya por lo menos 1 elemento.
+-   Para que el recurso compartido esté **libre** se deben cumplir dos condiciones simultáneamente:
 
-- Si estamos en un bucle no hay que preguntar si la cola está vacía, ya que causamos busy waiting. Tenemos que tener un semáforo contador que se inicializa en 0 y que va a tener en todo momento la cantidad de elementos en la cola, y los procesos harán un V sobre ese semáforo cada vez que pusheen algo. El coordinador hará un P, para esperar que haya por lo menos 1 elemento.
-
-- Para que el recurso compartido esté **libre** se deben cumplir dos condiciones simultáneamente: 
     1. Que la cola esté vacía.
     2. Que nadie esté usando el recurso en este momento.
 
-- Passing The Condition vs Passing The Baton: ???
+-   Passing The Condition vs Passing The Baton:
+    -   En el método Passing The Baton, el control del semáforo es transferido del proceso que lo tiene actualmente, al siguiente. Suele usarse con semáforos binarios.
+    -   En el método Passing The Condition, los procesos se señalizan utilizando variables booleanas compartidas. Suele usarse con semáforos contadores.
+
 ---
 
 <center>
