@@ -1084,4 +1084,79 @@ monitor Timer {
 
 </center>
 
-##
+## Pthreads
+
+-   Se trata de una librería del lenguaje C para programación paralela en **memoria compartida**. Sin embargo, hay muchas librerías muy similares en otros lenguajes.
+-   Un thread es un proceso "liviano" que tiene su propio Program Counter y su propia pila de ejecución, pero no controla el "contexto pesado" por ejemplo las tablas de página.
+
+#### Creación y terminación
+
+-   Inicialmente se tiene un solo proceso, que va creando hilos paralelos.
+-   1 hilo -> 1 función.
+-   El main debe esperar que todos los threads terminen.
+
+```c
+instrucciones ...
+```
+
+#### Mutex
+
+-   Se utilizan variables **mutex** las cuales tienen 2 estados, locked y unlocked. El único thread que puede desbloquear el mutex es el mismo que lo bloqueó.
+-   Para entrar a la SC, el thread debe lograr bloquear el mutex, y cuando sale de la SC debe desbloquearlo.
+-   Todos los mutex se inicializan como desbloqueados.
+
+```c
+instrucciones ...
+```
+
+#### Tipos de mutex
+
+Existen 3 tipos de mutex y pueden settearse entre los atributos antes de su inicialización.
+
+1. **Mutex Normal**: No permite que un thread que lo tienen bloqueado vuelva a hacer un lock sobre él (deadlock).
+2. **Mutex Recursive**: Permite que un thread que lo tienen bloqueado vuelva a hacer un lock sobre él.
+3. **Mutex Error Check**: Responde con un reporte de error cuando el mismo thread intenta bloquear por segunda vez el mutex.
+
+#### Overhead de bloqueos
+
+...
+
+#### Variables condición
+
+...
+
+#### Atributos y sincronización
+
+...
+
+###### Atributos para threads
+
+...
+
+###### Atributos para mutex
+
+...
+
+## Semáforos en Pthreads
+
+-   Los threads pueden sincronizarse por semáforos importando la librería **_semaphore.h_**.
+
+```c
+instrucciones ...
+```
+
+## Monitores en Pthreads
+
+-   Pthreads no posee monitores como tal, pero podemos simularlos combinando los mutex -> para la exclusión mutua; y las variables condición -> para la sincronización por condición.
+-   El acceso exclusivo al monitor se simula usando una variable mutex la cual se bloquea antes de la llamada al procedure y se desbloquea al terminar la misma (una variable mutex por cada monitor).
+-   Cada llamado de un proceso a un procedure debe ser reemplazado por el código de ese procedure.
+
+...
+
+---
+
+<center>
+
+# Clase 7 - 17 de abril, 2024
+
+</center>
