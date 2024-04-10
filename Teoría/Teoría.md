@@ -854,11 +854,9 @@ El proceso que hace el **_signal_** pasa a competir por acceder nuevamente al mo
 
 #### Simulando un semáforo
 
--   Hay que usar un **while** y no un **if** para evitar que el semáforo pueda tener valor menor a 0.
-
+-   Hay que usar un **while** y no un **if** para evitar que el semáforo pueda tener valor menor a 0: con un if podría pasar que cuando el semáforo vale 1, un proceso decremente el semáforo y luego se despierta a uno que estaba dormido el semáforo pasaría a valer -1. **Esto se da porque recordemos que despertar a un proceso dormido con el signal no asegura que pase a ejecutar inmediatamente, si no que pasa a competir con todos los otros procesos.**
 -   La diferencia es que en esta solución hay un orden parcial, la operación V despierta al primero que se durmió, en vez de liberar el semáforo para que **cualquiera** lo tome como ocurría en los semáforos. El orden "parcial" se debe a que un proceso le gane el acceso al proceso que acaba de ser despertado. El orden solo ocurre entre los procesos que se **habían dormido**, por eso es parcial.
-
--   Para que esta solución sea idéntica a un semáforo se debería hacer un **_signal_all(pos)_** en vez de **_signal(pos)_**.
+-   Para que esta solución sea idéntica a un semáforo se debería hacer un **_signal_all(pos)_** en vez de **_signal(pos)_**, aunque sería menos eficiente.
 
 ```cs
 monitor Semaforo {
@@ -880,17 +878,17 @@ monitor Semaforo {
 
 #### Passing The Condition
 
--   Esta solución es fair y respeta por completo el orden de llegada.
+-   Esta solución, por más que no sigue la definición exacta de semáforo, es fair y respeta por completo el orden de llegada.
 
 ```cs
-monitor Semaforo {
+monitor PassingTheCondition {
    int s = 1;
-   int espera = 0; // Cuenta cuántos procesos están dormidos en la variable condición.
+   int dormidos = 0; // Cuenta la cantidad de procesos dormidos en la variable condición.
    cond pos;
 
    procedure P() {
       if (s == 0) {
-         espera++;
+         dormidos++;
          wait(pos);
       }
       else
@@ -898,11 +896,10 @@ monitor Semaforo {
    }
 
    procedure V() {
-      if (espera == 0) {
+      if (dormidos == 0)
          s++;
-      }
       else {
-         espera--;
+         dormidos--;
          signal(pos);
       }
    }
@@ -911,10 +908,11 @@ monitor Semaforo {
 
 #### Alocación SJN: Wait con Prioridad
 
--   Como no podemos usar el empty en una variable condition, usamos una colaOrdenada auxiliar.
+-   Similar al anterior pero se despiertan los procesos según el orden de algún atributo, en este caso ese atributo es "tiempo" pero puede ser cualquier otro.
+-   Como no podemos usar el wait con prioridad en una variable condition, usamos una colaOrdenada auxiliar.
 
 ```cs
-monitor Semaforo {
+monitor ShortestJobNext {
    bool libre = true;
    cond turno[N];
    colaOrdenada espera;
@@ -935,12 +933,13 @@ monitor Semaforo {
          id = espera.pop().id
          signal(turno[id]);
       }
-
    }
 }
 ```
 
 #### Buffer limitado: Sincronización por condición básica
+
+-   Problema típico de productores y consumidores en un buffer de tamaño N.
 
 ```cs
 monitor BufferLimitado {
@@ -957,7 +956,7 @@ monitor BufferLimitado {
       signal(not_vacio);
    }
 
-   procedure retirar(typeT &resultado) {
+   procedure retirar(typeT resultado) {
       while (cantidad == 0)
          wait(not_vacio);
       resultado = buf[ocupado];
@@ -973,7 +972,7 @@ monitor BufferLimitado {
 -   Cuando se dan las condiciones todos los procesos compiten y uno de ellos entra sin ningún tipo de orden.
 
 ```cs
-monitor Controlador_RW {
+monitor ControladorRW {
    int cantLectores, cantEscritores = 0;
    cond ok_leer, ok_escribir;
 
@@ -1008,9 +1007,9 @@ monitor Controlador_RW {
 -   Mayor control de a quién dejamos pasar una vez la DB está libre.
 
 ```cs
-monitor Controlador_RW {
+monitor ControladorRW {
    int cantLectores = 0, cantEscritores = 0, lectoresDormidos = 0, escritoresDormidos = 0;
-   cond ok_leer, ok_escribir
+   cond ok_leer, ok_escribir;
 
    procedure pedido_leer() {
       if (cantEscritores > 0) {
@@ -1055,3 +1054,34 @@ monitor Controlador_RW {
    }
 }
 ```
+
+#### Reloj lógico: Covering Condition
+
+-   Timer que permite a los procesos dormirse por una cantidad personalizable de tiempo.
+
+```cs
+monitor Timer {
+   int horaActual = 0;
+   cond chequear;
+
+   procedure demorar(int intervalo) {
+
+   }
+
+   procedure tick() {
+
+   }
+}
+```
+
+#### Peluquero dormilón: Rendezvous
+
+---
+
+<center>
+
+# Clase 6 - 10 de abril, 2024
+
+</center>
+
+##
