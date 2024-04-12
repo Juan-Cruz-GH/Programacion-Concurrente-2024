@@ -1057,24 +1057,66 @@ monitor ControladorRW {
 
 #### Reloj lógico: Covering Condition
 
--   Timer que permite a los procesos dormirse por una cantidad personalizable de tiempo.
+-   Timer que permite a los procesos dormirse por una cantidad determinada de tiempo.
+-   Asumimos que **_peek_** retorna un número muy grande si la cola está vacía.
 
 ```cs
 monitor Timer {
    int horaActual = 0;
-   cond chequear;
+   cond espera[N];
+   colaOrdenada dormidos;
 
-   procedure demorar(int intervalo) {
-
+   procedure demorar(int intervalo, int id) {
+      int horaDespertar = horaActual + intervalo;
+      dormidos.push(id, horaDespertar)
+      wait(espera[id])
    }
 
    procedure tick() {
-
+      horaActual++;
+      int aux = dormidos.peek().horaDespertar
+      while (aux <= horaActual) {
+         idAux = dormidos.pop().id
+         signal(espera[idAux])
+         aux = dormidos.peek().horaDespertar
+      }
    }
 }
 ```
 
 #### Peluquero dormilón: Rendezvous
+
+-   Serie de sincronizaciones mutuas -> Rendezvous.
+-   corteDePelo -> Llamado por los clientes que retornan luego de recibir un corte de pelo.
+-   proximoCliente -> Llamado por el peluquero para esperar que un cliente se siente en su silla y luego le corta el pelo.
+-   corteTerminado -> Llamado por el peluquero para que el cliente abandone la peluquería.
+
+```cs
+monitor Peluqueria {
+   int peluquero, silla, abierto = 0;
+   cond peluqueroDisponible, sillaOcupada, puertaAbierta, salioCliente;
+
+   procedure corteDePelo() {
+      while (peluquero == 0)
+         wait (peluqueroDisponible);
+      peluquero--;
+      signal (sillaOcupada);
+      wait (puertaAbierta);
+      signal (salioCliente);
+   }
+
+   procedure proximoCliente() {
+      peluquero++;
+      signal(peluqueroDisponible);
+      wait(sillaOcupada);
+   }
+
+   procedure corteTerminado() {
+      signal(puertaAbierta);
+      wait(salioCliente);
+   }
+}
+```
 
 ---
 
