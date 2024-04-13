@@ -60,8 +60,8 @@ Estas formas de actuar pueden combinarse de cualquier forma, en un programa conc
 
 ## Procesos vs Hilos
 
-1. **Proceso:** Pedazos de una cosa más grande. Cada proceso tiene su propio espacio de direcciones y recursos. Las librerias de memoria distribuida trabajan con procesos.
-2. **Proceso liviano/thread/hilo:** Sub-pedazos de un mismo proceso, que tienen su propio contador de programa y su pila de ejecución, pero comparten el mismo espacio de direcciones y recursos que su proceso padre. Las librerias de memoria compartida trabajan con hilos.
+1. **Proceso:** Pedazos de una cosa más grande. Cada proceso tiene su propio espacio de direcciones y recursos. Las bibliotecas de memoria distribuida trabajan con procesos.
+2. **Proceso liviano/thread/hilo:** Sub-pedazos de un mismo proceso, que tienen su propio contador de programa y su pila de ejecución, pero comparten el mismo espacio de direcciones y recursos que su proceso padre. Las bibliotecas de memoria compartida trabajan con hilos.
 
 ## Memoria Compartida vs Distribuida
 
@@ -1128,77 +1128,168 @@ monitor Peluqueria {
 
 ## Pthreads
 
--   Se trata de una librería del lenguaje C para programación paralela en **memoria compartida**. Sin embargo, hay muchas librerías muy similares en otros lenguajes.
+-   Se trata de una biblioteca del lenguaje C para programación paralela en **memoria compartida**. Sin embargo, hay muchas libraries muy similares en otros lenguajes.
+-   Con esta biblioteca se pueden crear threads, asignarles atributos, darlos por terminados, identificarlos, etc.
 -   Un thread es un proceso "liviano" que tiene su propio Program Counter y su propia pila de ejecución, pero no controla el "contexto pesado" por ejemplo las tablas de página.
 
 #### Creación y terminación
 
--   Inicialmente se tiene un solo proceso, que va creando hilos paralelos.
+-   Inicialmente se tiene un solo proceso, el programa principal, que va creando hilos paralelos.
 -   1 hilo -> 1 función.
--   El main debe esperar que todos los threads terminen.
+-   El programa principal debe esperar a que todos los threads terminen para poder terminar.
+-   Pthreads provee 4 funciones básicas para especificar concurrencia.
 
 ```c
-instrucciones ...
+#include <pthread.h>
+
+// Genera o crea un hilo nuevo. Cada hilo tiene un manejador, atributos, la función que va a ejecutar y por último todos los parámetros que necesita esa función.
+int pthread_create(pthread_t *thread_handle, const pthread_attr_t *attribute, void * (*thread_function)(void *), void *arg);
+
+// Un hilo indica que ya terminó y devuelve algún resultado. Se llama al final de la función del create.
+int pthread_exit(void *res);
+
+// Esperar a que el hilo que pasamos haya terminado su ejecución.
+int pthread_join(pthread_t thread, void **ptr);
+
+// Solicitar que se cancele un hilo.
+int pthread_cancel(pthread_t thread);
+
 ```
 
 #### Mutex
 
--   Se utilizan variables **mutex** las cuales tienen 2 estados, locked y unlocked. El único thread que puede desbloquear el mutex es el mismo que lo bloqueó.
+-   Las secciones críticas en Pthreads se implementan usando mutex locks vía variables mutex.
+-   Estas variables mutex tienen 2 estados, locked y unlocked.
+-   El único thread que puede desbloquear el mutex es **el mismo que lo bloqueó**.
 -   Para entrar a la SC, el thread debe lograr bloquear el mutex, y cuando sale de la SC debe desbloquearlo.
 -   Todos los mutex se inicializan como desbloqueados.
 
 ```c
-instrucciones ...
+// Bloquea la variable mutex pasada como parámetro.
+int pthread_mutex_lock(pthread_mutex_t *mutex);
+
+// Desbloquea la variable mutex pasada como parámetro.
+int pthread_mutex_unlock(pthread_mutex_t *mutex);
+
+// Inicializa la variable mutex para que se pueda empezar a usar. Se le pasan una serie de atributos (tipo de mutex por ej).
+int pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *lock_attr);
 ```
 
 #### Tipos de mutex
 
-Existen 3 tipos de mutex y pueden settearse entre los atributos antes de su inicialización.
+Uno de los atributos de los mutex que pueden settearse en la inicialización es su **tipo**, de los cuales hay 3:
 
-1. **Mutex Normal**: No permite que un thread que lo tienen bloqueado vuelva a hacer un lock sobre él (deadlock).
-2. **Mutex Recursive**: Permite que un thread que lo tienen bloqueado vuelva a hacer un lock sobre él.
-3. **Mutex Error Check**: Responde con un reporte de error cuando el mismo thread intenta bloquear por segunda vez el mutex.
+1. **Mutex Normal**: Si un thread intenta bloquear el mismo mutex que ya había bloqueado antes se puede producir **deadlock**.
+2. **Mutex Recursive**: Permite que un mutex sea bloqueado muchas veces seguidas sin problema, pero eventualmente se deberán realizar **la misma cantidad de unlocks** que la cantidad de veces que se bloqueó para evitar deadlock.
+3. **Mutex Error Check**: Es como el mutex normal pero en vez de producir deadlock **responde con un reporte de error** cuando el mismo thread intenta bloquear por segunda vez el mutex.
 
 #### Overhead de bloqueos
 
-...
+-   Como ya hemos visto antes, si dentro de los locks ponemos demasiadas operaciones y/o instrucciones que tomen mucho tiempo, se degrada significativamente la performance.
+-   Para esto, se puede reducir esta pérdida usando una función:
+
+```c
+// Si la variable mutex está desbloqueada, la bloquea. Si está bloqueada, el proceso no se duerme y puede seguir trabajando en otras cosas.
+int pthread_mutex_trylock(pthread_mutex_t *mutex_lock);
+```
 
 #### Variables condición
 
-...
+-   Se pueden usar variables condición para que un thread se auto-bloquee hasta que el programa alcance un estado determinado.
+-   Cada variable condición estará asociada a un valor booleano. Cuando éste se vuelve **true**, los threads pueden avanzar.
+-   La condición puede ser compleja (varias condiciones juntas) aunque dificulta el debugging.
+-   Una VC siempre tiene un mutex asociada a ella.
+-   Si la VC es falsa, el thread espera (no usa CPU).
+
+```c
+int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
+
+int pthread_cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex, const struct timespec *abstime)
+
+int pthread_cond_signal(pthread_cond_t *cond)
+
+int pthread_cond_broadcast(pthread_cond_t *cond)
+
+int pthread_cond_init(pthread_cond_t *cond, const pthread_condattr_t *attr)
+
+int pthread_cond_destroy(pthread_cond_t *cond)
+```
 
 #### Atributos y sincronización
 
-...
-
-###### Atributos para threads
-
-...
-
-###### Atributos para mutex
-
-...
+-   Cada entidad (thread, mutex, variable condición, etc) puede tener atributos, los cuales se settean vía **objetos atributos**.
+-   Los attribute objects son estructuras de datos que describen las propiedades de la entidad.
+-   Una vez que las propiedades están establecidas, el AO es pasado al método init.
+-   Esto facilita la modificación del código.
 
 ## Semáforos en Pthreads
 
--   Los threads pueden sincronizarse por semáforos importando la librería **_semaphore.h_**.
+-   Los threads pueden sincronizarse por semáforos importando la biblioteca **_semaphore.h_**.
 
 ```c
-instrucciones ...
+// Se declaran globales a los threads.
+sem_t semaforo
+
+// Se le pasa como parámetro el semáforo como tal; el alcance (compartido por hilos de más de un proceso o solo los hilos de un solo proceso); inicial es el valor inicial (0, 1, etc).
+sem_init(&semaforo, alcance, inicial)
+
+// Exactamente igual al P().
+sem_wait(&semaforo)
+
+// Exactamente igual al V().
+sem_post(&semaforo)
 ```
 
 ## Monitores en Pthreads
 
--   Pthreads no posee monitores como tal, pero podemos simularlos combinando los mutex -> para la exclusión mutua; y las variables condición -> para la sincronización por condición.
+-   Pthreads no posee monitores como tal, pero podemos simularlos combinando:
+
+1. Los mutex -> para la exclusión mutua.
+2. Las variables condición -> para la sincronización por condición.
+
 -   El acceso exclusivo al monitor se simula usando una variable mutex la cual se bloquea antes de la llamada al procedure y se desbloquea al terminar la misma (una variable mutex por cada monitor).
 -   Cada llamado de un proceso a un procedure debe ser reemplazado por el código de ese procedure.
-
-...
 
 ---
 
 <center>
 
 # Clase 7 - 17 de abril, 2024
+
+</center>
+
+## Programación Concurrente en Memoria Distribuida
+
+## Pasaje de Mensajes Asincrónicos
+
+---
+
+<center>
+
+# Clase 8 - 24 de abril, 2024
+
+</center>
+
+---
+
+<center>
+
+# Clase 9 - 15 de mayo, 2024
+
+</center>
+
+---
+
+<center>
+
+# Clase 10 - 22 de mayo, 2024
+
+</center>
+
+---
+
+<center>
+
+# Clase 11 - 29 de mayo, 2024
 
 </center>
