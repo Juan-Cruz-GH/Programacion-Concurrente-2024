@@ -1260,7 +1260,90 @@ sem_post(&semaforo)
 
 ## Programación Concurrente en Memoria Distribuida
 
+#### Conceptos generales
+
+-   Las herramientas de Memoria Distribuida están pensadas para arquitecturas de MD -> Procesadores + Memoria local + Red de comunicaciones + Mecanismo de comunicación/sincronización.
+-   Un programa distribuido es un programa concurrente comunicado por mensajes que supone la ejecución sobre una arquitectura de MD.
+-   Los procesos únicamente comparten **canales** que pueden ser físicos o lógicos. Los canales también se dividen en:
+    -   **Mailbox** (cualquier proceso envía y cualquiera recibe) vs **input port** (cualquier proceso envía pero 1 solo recibe) vs **link** (1 solo proceso envía y 1 solo recibe).
+    -   **Uni** (cada comunicación va en un solo sentido) vs **bidireccionales** (en una misma comunicación los datos van y vuelven).
+    -   **Sincrónicos** (los 2 procesos que se quieren comunicar deben sincronizarse/esperarse mutuamente) vs **asincrónicos** (el canal actúa como una cola, no es bloqueante).
+
+#### Características
+
+-   Las únicas "variables" globales ahora son los canales.
+-   Por esto, no se necesita ningun mecanismo de mutex.
+-   Los procesos interactúan comunicándose vía canales.
+-   Los canales se acceden vía primitivas de envío y recepción.
+-   Mecanismos de Procesamiento Distribuido:
+    -   PMA (?, ?)
+    -   PMS (?, ?)
+    -   RPC (bidireccional, sincrónica)
+    -   Rendezvous (bidireccional, sincrónica)
+-   La sincronización de la comunicación interproceso depende del patrón de interacción: Clientes/Servidores; Pares interactuantes; Productores/Consumidores.
+
+#### Relación entre mecanismos de sincronización
+
+-   Semáforos: Mejora respecto a Busy Waiting.
+-   Monitores: Combinan mutex (implícito) con sincronización explícita.
+-   Pasaje de Mensajes: Extiende semáforos con datos.
+-   RPC y Rendezvous: Combina la interfaz procedural de monitores con Pasaje de Mensajes implícito.
+
 ## Pasaje de Mensajes Asincrónicos
+
+#### Canales
+
+-   Cada canal es una **cola** de mensajes enviados y no recibidos.
+-   Los canales son asincrónicos, unidireccionales, y de tipo mailbox.
+
+##### Declaración de canales
+
+```cs
+chan nombre(tipoDato);
+
+// Por ejemplo
+chan entrada(char);
+chan resultado[N](int);
+```
+
+##### Operación send
+
+-   Deja una copia del dato con el valor que tenga en ese instante al final de la cola del canal.
+-   No demora al emisor.
+-   Es una operación atómica.
+
+```cs
+send canal(dato);
+```
+
+##### Operación receive
+
+-   Toma el primer elemento de la cola y lo elimina de la misma.
+-   Si el canal está vacío, el proceso se **demora** hasta que haya al menos un elemento.
+-   Es una operación atómica.
+
+```cs
+receive canal(variable);
+```
+
+##### Operación empty
+
+-   Determina si la cola del canal está vacía o no.
+-   Debe usarse con cuidado:
+    -   ...
+    -   ...
+
+#### Productores y Consumidores (Red de Ordenación)
+
+...
+
+#### Clientes y Servidores (Monitores Activos)
+
+...
+
+#### Pares (peers) interactuantes
+
+...
 
 ---
 
