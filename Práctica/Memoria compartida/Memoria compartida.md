@@ -122,3 +122,53 @@ for i = 0 to N-1 {
 # Monitores
 
 </center>
+
+## Estructura y comunicación
+
+-   No hay más variables globales/compartidas.
+-   Las variables del monitor solo son visibles al monitor mismo.
+-   Si el monitor tiene código de inicialización, no atiende ningún pedido hasta que ese código termine.
+-   Los procesos interactúan entre ellos y con el/los recursos compartidos por medio de los procedures del monitor.
+    ... Completar
+
+```cs
+Monitor Nombre {
+    Variables permanentes del monitor;
+
+    {
+        Inicialización de variables;
+    }
+
+    Procedure uno() {
+        Variables locales del procedimiento;
+    }
+}
+
+process P[id: 0..N-1] {
+    nombre.uno();
+}
+```
+
+## Sincronización
+
+... Completar
+
+```cs
+cond vc;
+
+wait(vc);
+
+signal(vc);
+
+signal_all(vc);
+```
+
+## Notas generales
+
+-   En caso de no necesitar ningun orden, el monitor puede representar 100% al recurso compartido en vez de ser un "manejador" o "administrador" del recurso compartido.
+-   Hacer signal en una **variable condición vacía no causa ningun error**.
+-   En caso de necesitar respetar el orden de llegada, necesitamos un monitor que sea administrador del RC y que tenga 2 procedimientos, Pasar y Salir. El procedimiento Pasar va a encolar al proceso (dormirlo con wait()) si el recurso no está libre. El procedimiento Salir() le indica al próximo proceso en la cola que es su turno y pone el recurso en libre si la cola está vacía.
+-   Si el orden no es por llegada, se necesita un arreglo de variables condición, donde cada proceso se duerme en su VC privada. Además se necesita una colaOrdenada para saber a cuál de esas VC privadas despertar.
+-   En los ejercicios de tipo buffer 1 Consumidor y N Productores necesitamos 1) N procesos 2) un monitor Administrador 3) 1 proceso Servidor.
+-   En los ejercicios de tipo buffer M Consumidores y N Productores necesitamos 1) N procesos 2) un monitor Administrador 3) M procesos Servidor. Lo único que cambia es while en vez de if empty(cola) en el procedure Siguiente y variables condición privadas para dormirse luego de hacer el push + el signal.
+-   Hay 2 formas de hacer barreras: ... Completar
