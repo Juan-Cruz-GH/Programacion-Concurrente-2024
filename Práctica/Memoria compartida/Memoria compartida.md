@@ -129,7 +129,8 @@ for i = 0 to N-1 {
 -   Las variables del monitor solo son visibles al monitor mismo.
 -   Si el monitor tiene código de inicialización, no atiende ningún pedido hasta que ese código termine.
 -   Los procesos interactúan entre ellos y con el/los recursos compartidos por medio de los procedures del monitor.
-    ... Completar
+-   En un procedure de un monitor A se puede llamar a un procedure de otro monitor B. El monitor A no podrá continuar su ejecución ni atender otros pedidos hasta que el procedure de monitor B termine.
+-   Cuando el monitor se libera, **todos los procesos** que están haciendo llamados a los procedures compiten por acceder. No se respeta el orden de llegada.
 
 ```cs
 Monitor Nombre {
@@ -151,7 +152,10 @@ process P[id: 0..N-1] {
 
 ## Sincronización
 
-... Completar
+-   La exclusión mutua es implícita dentro de un monitor ya que no puede ejecutar más de un llamado a un procedimiento a la vez. Hasta que no termine el procedure o se duerma al proceso en una VC no se libera el monitor para atender otro llamado.
+-   La operación **wait** duerme al proceso al final de la cola de la VC.
+-   La operación **signal** despierta al primer proceso en la cola de la VC y éste pasa a competir nuevamente por acceder al monitor (no necesariamente pasa primero) y cuando lo logra continúa ejecutando en la instrucción siguiente a donde se durmió (wait).
+-   La operación **signal_all** despierta a todos los procesos dormidos en la cola de la VC y todos ellos pasan a competir por el acceso.
 
 ```cs
 cond vc;
@@ -171,4 +175,3 @@ signal_all(vc);
 -   Si el orden no es por llegada, se necesita un arreglo de variables condición, donde cada proceso se duerme en su VC privada. Además se necesita una colaOrdenada para saber a cuál de esas VC privadas despertar.
 -   En los ejercicios de tipo buffer 1 Consumidor y N Productores necesitamos 1) N procesos 2) un monitor Administrador 3) 1 proceso Servidor.
 -   En los ejercicios de tipo buffer M Consumidores y N Productores necesitamos 1) N procesos 2) un monitor Administrador 3) M procesos Servidor. Lo único que cambia es while en vez de if empty(cola) en el procedure Siguiente y variables condición privadas para dormirse luego de hacer el push + el signal.
--   Hay 2 formas de hacer barreras: ... Completar
