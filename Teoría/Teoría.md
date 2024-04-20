@@ -1262,7 +1262,8 @@ sem_post(&semaforo)
 
 #### Conceptos generales
 
--   Las herramientas de Memoria Distribuida están pensadas para arquitecturas de MD -> Procesadores + Memoria local + Red de comunicaciones + Mecanismo de comunicación/sincronización.
+-   Las herramientas de Memoria Distribuida están pensadas para arquitecturas de MD.
+-   Una arquitectura de memoria distribuida es una en donde se tienen clusters, es decir varios procesadores conectados vía cable donde cada uno de ellos puede ser un multicore con una memoria compartida, pero donde cada cluster en sí tiene SU propia memoria.
 -   Un programa distribuido es un programa concurrente comunicado por mensajes que supone la ejecución sobre una arquitectura de MD.
 -   Los procesos únicamente comparten **canales** que pueden ser físicos o lógicos. Los canales también se dividen en:
     -   **Mailbox** (cualquier proceso envía y cualquiera recibe) vs **input port** (cualquier proceso envía pero 1 solo recibe) vs **link** (1 solo proceso envía y 1 solo recibe).
@@ -1303,6 +1304,7 @@ chan nombre(tipoDato);
 
 // Por ejemplo
 chan entrada(char);
+chan canal(int a, int b, char c);
 chan resultado[N](int);
 ```
 
@@ -1314,36 +1316,64 @@ chan resultado[N](int);
 
 ```cs
 send canal(dato);
+
+// Por ejemplo
+send canal(1);
 ```
 
 ##### Operación receive
 
 -   Toma el primer elemento de la cola y lo elimina de la misma.
--   Si el canal está vacío, el proceso se **demora** hasta que haya al menos un elemento.
+-   Si el canal está vacío, el proceso se **demora** hasta que haya al menos un elemento, por ende es una operación bloqueante.
+-   Las variables en el receive deben ser del mismo tipo que el tipo de dato del canal en su declaración.
 -   Es una operación atómica.
 
 ```cs
 receive canal(variable);
+
+// Por ejemplo
+int miVariable;
+receive canal(miVariable);
 ```
 
 ##### Operación empty
 
 -   Determina si la cola del canal está vacía o no.
 -   Debe usarse con cuidado:
-    -   ...
-    -   ...
+    -   Puede ocurrir que la operación de falso, es decir, que haya al menos un elemento en la cola, pero al momento de hacer el receive ya no está ese elemento, porque otro proceso le ganó e hizo el receive antes. Esto provocaría que si la cola tenía 1 solo elemento el proceso que perdió se quede bloqueado en el receive, cosa que queríamos evitar.
+    -   Puede ocurrir que la operación de verdadero, es decir, que no hay ningún elemento en la cola, y sin embargo justo después se agregue un nuevo elemento a la cola sin que el proceso llegue a darse cuenta.
 
-#### Productores y Consumidores (Red de Ordenación)
-
-...
+```cs
+empty(canal) // V o F
+```
 
 #### Clientes y Servidores (Monitores Activos)
 
-...
+-   Podemos simular el funcionamiento de un monitor como manejador de un recurso compartido vía PMA.
+-   Tenemos N procesos Cliente y 1 proceso Servidor.
+-   Los clientes envian pedidos a un canal compartido y luego realizan un receive en un canal privado de cada uno de ellos.
+-   El Servidor atiende los pedidos de los clientes por orden de llegada naturalmente, ya que las colas de los canales mantienen este orden.
+-   Tambien se pueden simular las variables condición de forma similar.
+-   Existe una correspondencia directa entre este método de PMA y los Monitores propiamente dichos:
+
+| Monitores                     | Monitores simulados vía PMA                   |
+| ----------------------------- | --------------------------------------------- |
+| Variables permanentes         | Variables locales del Servidor                |
+| Identificadores de procedures | Canal request y tipos de operación            |
+| Llamado a procedure           | send request(), receive respuesta()           |
+| Entry del monitor             | receive request()                             |
+| Retorno del procedure         | send respuesta()                              |
+| Sentencia wait                | Salvar pedido pendiente                       |
+| Sentencia signal              | Recuperar/procesar pedido pendiente           |
+| Cuerpos de los procedure      | Sentencias del case switch según la operación |
 
 #### Pares (peers) interactuantes
 
-...
+-   Se trata de un problema donde N procesos poseen un valor cada uno y todos deben conocer el máximo y el mínimo de entre todos ellos.
+-   Existen 3 tipos de soluciones a este problema:
+    -   **Centralizada**: Los procesos le envian su información a un proceso Servidor que calculará el min y max global y luego almacenará los resultados en un arreglo de canales resultado, donde cada posición pertenecerá a cada proceso.
+    -   **Simétrica**: Hay un canal entre cada par de procesos. Todos los procesos ejecutan el mismo código y no hay proceso Servidor. Cada proceso envía su dato local a los N-1 restantes y luego recibe y procesa los N-1 datos de los demás, de forma tal que en paralelo toda la arquitectura está calculando el mínimo y el máximo y toda la arquitectura tiene acceso a los N datos.
+    -   **Anillo**: El proceso P[i] recibe mensajes de P[i-1] y envía mensajes a P[i+1].  Posee 2 etapas, en la primera cada proceso recibe 2 valores y los compara con su local, enviando un min y un max a su sucesor. En la segunda todos reciben la circulación del min y max global. El primer proceso de todos debe ser ligeramente distinto a todos los demás.
 
 ---
 
