@@ -1373,7 +1373,7 @@ empty(canal) // V o F
 -   Existen 3 tipos de soluciones a este problema:
     -   **Centralizada**: Los procesos le envian su información a un proceso Servidor que calculará el min y max global y luego almacenará los resultados en un arreglo de canales resultado, donde cada posición pertenecerá a cada proceso.
     -   **Simétrica**: Hay un canal entre cada par de procesos. Todos los procesos ejecutan el mismo código y no hay proceso Servidor. Cada proceso envía su dato local a los N-1 restantes y luego recibe y procesa los N-1 datos de los demás, de forma tal que en paralelo toda la arquitectura está calculando el mínimo y el máximo y toda la arquitectura tiene acceso a los N datos.
-    -   **Anillo**: El proceso P[i] recibe mensajes de P[i-1] y envía mensajes a P[i+1].  Posee 2 etapas, en la primera cada proceso recibe 2 valores y los compara con su local, enviando un min y un max a su sucesor. En la segunda todos reciben la circulación del min y max global. El primer proceso de todos debe ser ligeramente distinto a todos los demás.
+    -   **Anillo**: El proceso P[i] recibe mensajes de P[i-1] y envía mensajes a P[i+1]. Posee 2 etapas, en la primera cada proceso recibe 2 valores y los compara con su local, enviando un min y un max a su sucesor. En la segunda todos reciben la circulación del min y max global. El primer proceso de todos debe ser ligeramente distinto a todos los demás.
 
 ---
 
@@ -1383,7 +1383,90 @@ empty(canal) // V o F
 
 </center>
 
----
+## Pasaje de Mensajes Sincrónicos
+
+#### Conceptos básicos
+
+-   Los canales son de tipo **link** (1 emisor 1 receptor), **sincrónicos** e **implícitos**.
+-   A diferencia de PMA, la primita de envío de PMS es **bloqueante**:
+-   El emisor queda esperando que el mensaje sea recibido por el receptor.
+-   La cola de mensajes asociada a un canal se reduce a 1 mensaje -> **menos uso de memoria**.
+-   Naturalmente **se reduce el grado de concurrencia** respecto a PMA: los emisores se bloquean por más tiempo.
+-   Es más fácil que ocurra **deadlock**.
+
+#### Buffer
+
+-   Una técnica para aumentar la concurrencia de PMS es utilizar un proceso buffer.
+-   Se puede usar por ej en el problema de 1 Productor y 1 Consumidor; N Productores y M Consumidores; N Clientes y 1 Servidor.
+
+## Lenguaje de PMS: CSP
+
+#### Conceptos básicos
+
+-   Introduce comunicación guardada.
+-   Los canales son links entre dos procesos en vez de mailbox global. Son half-duplex y nominados.
+-   Las sentencias de Entrada (?) y Salida (!) son el único medio por el cual los procesos se comunican.
+-   Para que se produzca la comunicación, deben matchear, y luego se ejecutan en simultáneo.
+-   Los canales no se declaran, son implícitos vía **ports**.
+
+#### Sintaxis
+
+-   Destino y Fuente son procesos.
+-   Fuente[*] significaría que cualquier proceso dentro del arreglo de procesos Fuente puede realizar el envío.
+-   port es una etiqueta que se usa para distinguir entre distintas clases de mensajes que un proceso podría recibir.
+
+```cs
+Destino!port(e1, ..., eN);
+Fuente?port(x1, ..., xN);
+Fuentes[*]?port(x1, ..., xN);
+```
+
+-   Dos procesos se comunican cuando hacen matching, es decir:
+
+```cs
+A!canal(dato);
+
+B?canal(resultado);
+```
+
+#### Comunicación guardada
+
+-   Como ? y ! son bloqueantes, se generan problemas si un proceso quiere comunicarse con otros sin conocer el orden en que los otros quieren hacerlo con él.
+-   Las operaciones ? y ! pueden ser guardadas, es decir, hacer un **"await"** hasta que una condición sea verdadera.
+
+##### Definición
+
+```cs
+Condición; Comunicación -> Sentencias;
+```
+
+-   La condición puede omitirse y se asume True.
+-   B y C forman la guarda.
+-   La guarda **tiene éxito** si la condición es True y ejecutar C no causa demora.
+-   La guarda **falla** si la condición es False.
+-   La guarda **se bloquea** si la condición es True pero C no puede ejecutarse en ese instante.
+
+##### If y Do
+
+```cs
+if
+   Condición1; Comunicación1 -> Sentencias1;
+   Condición2; Comunicación2 -> Sentencias2;
+fi
+```
+
+1. Se evalúan todas las guardas al mismo tiempo.
+    - Si todas son falsas, termina el if.
+    - Si al menos una es V, se elige una aleatoriamente.
+    - Si algunas guardas se bloquean, se espera hasta que alguna de ellas tenga éxito.
+2. Luego de elegir una guarda exitosa, se ejecuta la sentencia de comunicación de esa guarda.
+3. Se ejecuta/n la/s sentencia/s de esa guarda.
+
+El do es igual excepto que se sigue iterando hasta que todas las condiciones sean falsas.
+
+#### Ejemplos de comunicación guardada
+
+...
 
 <center>
 
