@@ -1388,15 +1388,16 @@ empty(canal) // V o F
 #### Conceptos básicos
 
 -   Los canales son de tipo **link** (1 emisor 1 receptor), **sincrónicos** e **implícitos**.
--   A diferencia de PMA, la primita de envío de PMS es **bloqueante**:
--   El emisor queda esperando que el mensaje sea recibido por el receptor.
--   La cola de mensajes asociada a un canal se reduce a 1 mensaje -> **menos uso de memoria**.
--   Naturalmente **se reduce el grado de concurrencia** respecto a PMA: los emisores se bloquean por más tiempo.
--   Es más fácil que ocurra **deadlock**.
+-   A diferencia de PMA, la primitiva de envío de PMS es **bloqueante**:
+
+    -   El emisor queda esperando que el mensaje sea recibido por el receptor.
+    -   La cola de mensajes asociada a un canal se reduce a 1 mensaje -> **menos uso de memoria**.
+    -   Naturalmente **se reduce el grado de concurrencia** respecto a PMA: los emisores se bloquean por más tiempo.
+    -   Es más fácil que ocurra **deadlock**.
 
 #### Buffer
 
--   Una técnica para aumentar la concurrencia de PMS es utilizar un proceso buffer.
+-   Una técnica para contrarrestar en cierto grado la reducción de concurrencia en PMS es utilizar un proceso buffer.
 -   Se puede usar por ej en el problema de 1 Productor y 1 Consumidor; N Productores y M Consumidores; N Clientes y 1 Servidor.
 
 ## Lenguaje de PMS: CSP
@@ -1412,7 +1413,7 @@ empty(canal) // V o F
 #### Sintaxis
 
 -   Destino y Fuente son procesos.
--   Fuente[*] significaría que cualquier proceso dentro del arreglo de procesos Fuente puede realizar el envío.
+-   Fuente[*] significaría que cualquier proceso dentro del arreglo de procesos Fuente realiza la recepción.
 -   port es una etiqueta que se usa para distinguir entre distintas clases de mensajes que un proceso podría recibir.
 
 ```cs
@@ -1434,39 +1435,34 @@ B?canal(resultado);
 -   Como ? y ! son bloqueantes, se generan problemas si un proceso quiere comunicarse con otros sin conocer el orden en que los otros quieren hacerlo con él.
 -   Las operaciones ? y ! pueden ser guardadas, es decir, hacer un **"await"** hasta que una condición sea verdadera.
 
-##### Definición
-
 ```cs
 Condición; Comunicación -> Sentencias;
 ```
 
--   La condición puede omitirse y se asume True.
--   B y C forman la guarda.
--   La guarda **tiene éxito** si la condición es True y ejecutar C no causa demora.
--   La guarda **falla** si la condición es False.
--   La guarda **se bloquea** si la condición es True pero C no puede ejecutarse en ese instante.
+-   La condición puede omitirse en cuyo caso es True.
+-   Condición + Comunicación forman la **guarda**:
+    -   La guarda **tiene éxito** si la condición es True y ejecutar C no causa demora.
+    -   La guarda **falla** si la condición es False.
+    -   La guarda **se bloquea** si la condición es True pero C no puede ejecutarse en ese instante.
 
-##### If y Do
+#### If y Do con comunicación guardada
 
 ```cs
 if
    Condición1; Comunicación1 -> Sentencias1;
    Condición2; Comunicación2 -> Sentencias2;
+   CondiciónN; ComunicaciónN -> SentenciasN;
 fi
 ```
 
 1. Se evalúan todas las guardas al mismo tiempo.
-    - Si todas son falsas, termina el if.
-    - Si al menos una es V, se elige una aleatoriamente.
-    - Si algunas guardas se bloquean, se espera hasta que alguna de ellas tenga éxito.
+    - Si **todas son falsas**, termina el if.
+    - Si **al menos una es V**, se elige una aleatoriamente.
+    - Si **algunas guardas se bloquean**, se espera hasta que alguna de ellas tenga éxito.
 2. Luego de elegir una guarda exitosa, se ejecuta la sentencia de comunicación de esa guarda.
-3. Se ejecuta/n la/s sentencia/s de esa guarda.
+3. Se ejecutan las sentencias de esa guarda.
 
-El do es igual excepto que se sigue iterando hasta que todas las condiciones sean falsas.
-
-#### Ejemplos de comunicación guardada
-
-...
+El do es igual excepto que se sigue iterando hasta que **todas las condiciones sean falsas**.
 
 <center>
 
