@@ -4,34 +4,114 @@
 
 </center>
 
-## <> y Await
+## Sintaxis
 
+| Instrucción                         | Semántica                                                                                                                                                                                               |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `< Sentencia/s >`                   | El proceso ejecuta la/s sentencia/s en forma **atómica**. Nos brinda sincronización por **exclusión mutua**.                                                                                            |
+| `< await (condición) Sentencia/s >` | El proceso se demora (busy waiting) hasta que la condición sea verdadera y en ese momento ejecuta la/s sentencia/s en forma **atómica**. Nos brinda sincronización por **condición y exclusión mutua**. |
+| `< await (condición) >`             | El proceso se demora hasta que la condición sea verdadera. Nos brinda sincronización por **condición**.                                                                                                 |
+
+## Notas importantes
+
+#### Acceso a la sección crítica
+
+-   Una vez que la sección crítica se libera, **cualquiera** de los demás procesos que estaban esperando a acceder a esa sección crítica tomará control de la misma vía exclusión mutua. No hay ningún tipo de orden. No se puede saber cuál proceso tomará la sección crítica.
+
+```cs
+process Proceso [id: 1..N] {
+    < Tarea() > // Cualquier proceso accede primero a la sección crítica. Una vez se libera, cualquier otro pasa.
+}
 ```
-< Sentencia/s >
+
+#### Eficiencia
+
+-   Siempre tratar de usar el < > lo menos posible, ya que reduce la concurrencia. No deberíamos incluir nada que no sea totalmente necesario dentro de los < >.
+-   Por ejemplo, en vez de incrementar una variable compartida en forma atómica dentro de un for podemos hacerlo al final de las iteraciones, utilizando, en los procesos, variables locales contadoras:
+
+```cs
+// ❌ Código ineficiente
+int contador;
+process Proceso [id: 1..N] {
+    for i = 0 to 10_000 {
+        < contador++ >
+    }
+}
 ```
 
--   El proceso ejecuta la/s sentencia/s en forma **atómica**. Nos brinda sincronización por **exclusión mutua**.
-
+```cs
+// ✅ Código eficiente
+int contador;
+process Proceso [id: 1..N] {
+    int contadorLocal
+    for i = 0 to 10_000 {
+        contadorLocal++
+    }
+    < contador += contadorLocal >
+}
 ```
-< await (condición) Sentencia/s >
+
+#### Orden de llegada
+
+-   Si queremos que los procesos accedan a la sección crítica según el orden de llegada, necesitamos una Cola compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento:
+
+```cs
+Cola cola; int siguiente = -1;
+process Persona [id: 1..N] {
+    while true {
+        < if siguiente == -1
+            siguiente = id
+          else
+            cola.push(id) >
+        < await (siguiente == id) >
+        // Sección crítica
+        < if cola.empty()
+            siguiente = -1
+          else
+            siguiente = cola.pop() >
+    }
+}
 ```
 
--   El proceso se demora (busy waiting) hasta que la condición sea verdadera y en ese momento ejecuta la/s sentencia/s en forma **atómica**. Nos brinda sincronización por **condición y exclusión mutua**.
+#### Orden de algun atributo (prioridad)
 
+-   Si queremos que los procesos accedan a la sección crítica según el orden de uno de sus atributos, necesitamos una ColaOrdenada compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento:
+
+```cs
+ColaOrdenada cola; int siguiente = -1;
+process Persona [id: 1..N] {
+    int edad = GetEdad()
+    while true {
+        < if siguiente == -1
+            siguiente = id
+          else
+            cola.push(id, edad) > // Inserta ordenado por edad descendientemente
+        < await (siguiente == id) >
+        // Sección crítica
+        < if cola.empty()
+            siguiente = -1
+          else
+            siguiente = cola.pop() >
+    }
+}
 ```
-< await (condición) >
+
+#### Orden de identificador (ID)
+
+-   Si queremos que los procesos accedan a la sección crítica según el orden de sus IDs, necesitamos una variable compartida inicializada en 0 que se irá incrementando de a 1 simbolizando los turnos de los procesos. Los demás procesos esperan a que siguiente sea su ID:
+
+```cs
+int siguiente = 1
+process Proceso [id: 1..N] {
+    < await (siguiente == id) >
+    // Sección critica
+    siguiente++
+}
 ```
 
--   El proceso se demora (busy waiting) hasta que la condición sea verdadera. Nos brinda sincronización por **condición**.
+#### Cuándo está libre el recurso compartido?
 
-## Notas generales
-
--   Siempre tratar de usar el < > lo menos posible, ya que reduce la concurrencia. Además, nunca deberíamos poner nada que no sea totalmente necesario dentro de los < >. Por ejemplo, en vez de incrementar una variable compartida en forma atómica dentro de un for podemos hacerlo al final de las iteraciones, utilizando, en los procesos, variables locales contadoras.
 -   Que la cola de procesos esperando para usar un recurso compartido este vacía no nos asegura que el recurso compartido no esté siendo utilizado actualmente. Podría haber un último proceso usando el recurso.
--   Una vez que la sección crítica se libera, **cualquiera** de los demás procesos que estaban esperando a acceder a esa sección crítica tomará control de la misma via exclusión mutua. No hay ningun tipo de orden. No se puede saber cuál proceso tomará la sección crítica.
--   Si queremos que los procesos accedan a la sección crítica según el orden de sus IDs, necesitamos una variable compartida inicializada en 0 que se irá incrementando de a 1 simbolizando los turnos de los procesos.
--   Si queremos que los procesos accedan a la sección crítica según el orden de llegada, necesitamos una Cola compartida que almacenará el orden original de los procesos en la primer iteración, orden que se respetará tal cual en las proximas iteraciones.
--   Si queremos que los procesos accedan a la sección crítica según el orden de alguno de sus atributos, necesitamos una ColaOrdenada compartida que almacenará el orden original de los procesos en la primer iteración, orden que se respetará tal cual en las proximas iteraciones.
 
 ---
 
