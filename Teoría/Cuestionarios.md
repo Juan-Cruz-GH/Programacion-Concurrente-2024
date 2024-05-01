@@ -6,55 +6,186 @@
 
 ### 1. Mencione al menos 3 ejemplos donde pueda encontrarse concurrencia
 
+Puede encontrarse concurrencia en el cuerpo humano, en los aviones, en los autos, en los servidores web, etc.
+
 ### 2. Escriba una definición de concurrencia. Diferencie procesamiento secuencial, concurrente y paralelo
+
+La concurrencia significa realizar varias tareas al mismo tiempo, simultáneamente.
+
+El procesamiento secuencial realiza una tarea a la vez. Hasta que no termina la tarea N no se realiza la tarea N + 1.
+
+El procesamiento concurrente involucra compartir tiempo de CPU de un solo core entre N tareas.
+
+El procesamiento paralelo procesa N tareas de forma 100% simultánea, cada una en un core distinto.
 
 ### 3. Describa el concepto de deadlock y qué condiciones deben darse para que ocurra.
 
+El deadlock ocurre cuando hay un bloqueo donde 2 o más procesos esperan que el opuesto libere un recurso compartido, quedandose en un loop.
+
+Puede ocurrir cuando:
+
+1. Hay secciones críticas.
+2. Los procesos mantienen los recursos que adquirieron mientras esperan adquirir más recursos.
+3. Nadie puede sacarle un recurso a un proceso excepto él mismo.
+4. Cada proceso tiene un recurso que su sucesor en el cilo está esperando adquirir.
+
 ### 4. Defina inanición. Ejemplifique.
+
+La inanición ocurre cuando un proceso no llega nunca a ejecutarse ya que todos los demás procesos le ganan en la competencia por CPU.
+
+Puede ocurrir por ejemplo cuando existen prioridades entre los procesos. Podría pasar que lleguen constantemente procesos de prioridad alta que pidan CPU haciendo que los de prioridad baja no puedan obtener CPU.
 
 ### 5. ¿Qué entiende por no determinismo? ¿Cómo se aplica este concepto a la ejecución concurrente?
 
+El no determinismo significa que dada una entrada, pueden haber múltiples salidas, y no se puede predecir cuál será exactamente la salida en una ejecución determinada.
+
+Este concepto se aplica a la ejecución concurrente ya que el orden en que se ejecutan los procesos concurrentes es no determinístico.
+
 ### 6. Defina comunicación. Explique los mecanismos de comunicación que conozca.
+
+La comunicación entre procesos indica el modo en que se los procesos concurrentes organizan y transmiten datos entre ellos.
+
+Existen 2 mecanismos, por Memoria Compartida y por Memoria Distribuida.
+
+En la Compartida, todos los procesos comparten un único lugar de memoria. Para evitar interferencia, bloquean las posiciones de memoria y luego las liberan cuando terminaron de usarlas. Este mecanismo se utiliza en procesadores MonoCore.
+
+En la Distribuida, cada core puede ejecutar varios procesos de forma concurrente (no paralela) y cada core se ejecuta de forma paralela, por lo tanto cierta parte (a veces por completo) de los procesos se ejecuta de forma paralela. Se establece un canal lógico o físico para que los cores se comuniquen entre sí.
 
 ### 7.
 
 ##### a) Defina sincronización. Explique los mecanismos de sincronización que conozca.
 
+La sincronización ocurre cuando 2 o más procesos coordinan actividades entre ellos. Existen 2 mecanismos de sincronización:
+
+1. Exclusión mutua: Un proceso bloquea el acceso a un recurso, lo utiliza, y luego lo libera.
+2. Por condición: Un proceso se duerme hasta que una condición se torna verdadera.
+
 ##### b) ¿En un programa concurrente pueden estar presentes más de un mecanismo de sincronización? En caso afirmativo, ejemplifique
+
+Un programa concurrente puede hacer uso de ambos mecanismos de sincronización sin problema. Por ejemplo, sincronización por mutex para proteger una variable compartida, y luego sincronización por condición para dormirse hasta que otro proceso haya hecho determinada tarea.
 
 ### 8. ¿Qué significa el problema de “interferencia” en programación concurrente? ¿Cómo puede evitarse?
 
+La interferencia ocurre cuando un proceso hace algo que invalida las suposiciones que hace otro proceso. Puede evitarse vía sincronización por mutex o por condición.
+
 ### 9. ¿En qué consiste la propiedad de “A lo sumo una vez” y qué efecto tiene sobre las sentencias de un programa concurrente? De ejemplos de sentencias que cumplan y de sentencias que no cumplan con ASV.
+
+Una sentencia a = b cumple la propiedad A lo suma una vez si:
+
+-   b contiene como máximo una referencia crítica y a no es referenciada.
+-   b no contiene ninguna referencia crítica.
+
+El efecto que tiene esta propiedad es que si una sentencia a = b cumple la propiedad entonces su ejecución simula ser atómica y si no la cumple entonces DEBE ser ejecutada atómicamente.
+
+Ejemplo de sentencias que cumplen la propiedad:
+
+```cs
+int a = 5;
+int b = 2;
+process A {
+    a = 7;  // ✅ Cumple la propiedad ya que la parte izquierda de la asignación no es referenciada.
+}
+process B {
+    b = 9;  // ✅ Cumple la propiedad ya que la parte izquierda de la asignación no es referenciada.
+}
+```
+
+Ejemplo de sentencias que no cumplen la propiedad:
+
+```cs
+int a = 5;
+int b = 2;
+process A {
+    a = b + 1;  // ❌ No cumple la propiedad ya que la parte izquierda de la asignación es referenciada.
+}
+process B {
+    b = a + 1;  // ❌ No cumple la propiedad ya que la parte izquierda de la asignación es referenciada.
+}
+```
 
 ### 10. Dado el siguiente programa concurrente:
 
 ```cs
-x = 2; y = 4; z = 3;
-co
-   P1        || P2         || P3
-   x = y - z || z = x * 2 || y = y - 1
-oc
+x = 2;
+y = 4;
+z = 3;
+process P1 {
+    x = y - z;
+}
+process P2 {
+    z = x * 2;
+}
+process P3 {
+    y = y - 1;
+}
+
 ```
 
-##### a) ¿Cuáles de las asignaciones dentro de la sentencia co cumplen con ASV? Justifique claramente.
+##### a) ¿Cuáles de las asignaciones cumplen con ASV? Justifique claramente.
+
+-   La asignación en P1 no cumple la propiedad ya que X es referenciada en P2.
+-   La asignación en P2 no cumple ya que Z es referenciada en P1.
+-   La asignación en P3 no cumple ya que Y es referenciada en P1.
 
 ##### b) Indique los resultados posibles de la ejecución. Nota 1: las instrucciones NO SON atómicas. Nota 2: no es necesario que liste TODOS los resultados, pero si los que sean representativos de las diferentes situaciones que pueden darse.
 
+1. Si se ejecutan en orden (P1, P2, P3):
+    - x = 1
+    - z = 2
+    - y = 3
+2. Si se ejecutan en el orden opuesto (P3, P2, P1):
+    - y = 3
+    - z = 4
+    - x = -1
+3. Si se ejecutan en el orden (P2, P1, P3):
+    - z = 4
+    - x = 0
+    - y = 3
+
 ### 11. Defina acciones atómicas condicionales e incondicionales. Ejemplifique.
+
+Las acciones atómicas son condicionales cuando solo se ejecutan una vez se cumple una condición.
+
+Las acciones atómicas son incondicionales cuando no poseen ninguna condición, se ejecutan atómicamente siempre.
 
 ### 12. Defina propiedad de seguridad y propiedad de vida.
 
+Una propiedad de seguridad asegura que no haya errores ni resultados extraños.
+
+Una propiedad de vida asegura la ausencia de deadlock y que el programa eventualmente terminará.
+
 ### 13. ¿Qué es una política de scheduling? Relacione con fairness. ¿Qué tipos de fairness conoce?
 
+Una acción atómica es elegible si es la próxima acción atómica en el proceso que será ejecutada. Si tenemos varios procesos tenemos varias acciones atómicas elegibles, y la política de scheduling decidirá cuál de todas ellas será la próxima en ejecutarse.
+
+La política de scheduling se refiere al criterio que utiliza el sistema operativo para decidir a qué proceso darle CPU y cuándo.
+
+Existen 3 tipos de fairness:
+
+-   Incondicional: toda acción atómica incondicional elegible eventualmente se ejecuta.
+-   Débil: Es incondicional y además toda acción atómica condicional elegible eventualmente se ejecuta, asumiendo que su condición sea true y permanece true hasta que es vista por el proceso que ejecuta la acción atómica condicional.
+-   Fuerte: Es incondicional y además toda acción atómica condicional eventualmente se ejecuta, ya que su guarda se convierte en true con frecuencia infinita. No se puede implementar.
+
 ### 14. ¿Por qué las propiedades de vida dependen de la política de scheduling? ¿Cómo aplicaría el concepto de fairness al acceso a una base de datos compartida por N procesos concurrentes?
+
+Las propiedades de vida dependen de la política de scheduling porque ésta afecta qué procesos se ejecutan y cuándo.
+
+En el caso del acceso a una BD compartida por N procesos concurrentes aplicaría el concepto de fairness para asegurar que todos los procesos accedan eventualmente a la BD y no haya inanición.
 
 ### 15. Dado el siguiente programa concurrente, indique cuál es la respuesta correcta (justifique claramente)
 
 ```cs
-int a = 1, b = 0;
-co
-   await (b = 1) a = 0 || while (a = 1) { b = 1; b = 0; }
-oc
+int a = 1;
+int b = 0;
+process P1 {
+    await (b == 1); a = 0;
+}
+process P2 {
+    while (a == 1) {
+        b = 1;
+        b = 0;
+    }
+}
 ```
 
 ##### a) Siempre termina
@@ -62,6 +193,8 @@ oc
 ##### b) Nunca termina
 
 ##### c) Puede terminar o no
+
+Puede terminar o no, si se da el caso de que siempre se ejecuta el bloque entero dentro del while podría nunca terminarse el await (b == 1), ya que el proceso 2 pondría a la variable b en 0 antes de que el proceso 1 pueda llegar a chequear la condición de su await a tiempo, y quedarse esperando para siempre. Si en algún momento se ejecuta b = 1 y P1 llega a chequear la condición de su await antes que P2 ponga b = 0, se termina el programa.
 
 ---
 
