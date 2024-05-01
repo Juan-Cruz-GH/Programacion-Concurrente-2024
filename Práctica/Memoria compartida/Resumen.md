@@ -121,29 +121,49 @@ process Proceso [id: 1..N] {
 
 </center>
 
-## Declaraciones
+## Sintaxis
+
+| Instrucción           | Semántica                                                                                                                                         |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sem semaforo = 0`    | Un semáforo inicializado en 0 significa que todos los procesos se quedaran esperando ahí hasta que otro proceso haga un V().                      |
+| `sem semaforo = N`    | Un semáforo inicializado en N significa que N procesos podrán estar en la sección crítica a la vez.                                               |
+| `sem semaforo[N] = 0` | Arreglo de semáforos inicializados en 0, para que cada proceso de un arreglo de procesos se quede esperando. También llamados semáforos privados. |
+| `P(semaforo)`         | Si semáforo == 0 -> se queda esperando. Si no -> semáforo--                                                                                       |
+| `V(semaforo)`         | semáforo++                                                                                                                                        |
+
+## Notas importantes
+
+#### ...
+
+-   ...
 
 ```cs
-sem s; // ❌ Se deben inicializar en la declaración.
-sem mutex = 1; // ✅ Inicializar un sem en 1 significa que 1 solo proceso a la vez podrá estar en la sección crítica.
-sem espera[5] = ( [5] 1 ) // ✅ Arreglo de 5 semáforos, todos inicializados en 1. También llamados semáforos privados.
+
 ```
 
-## Operaciones
+#### ...
 
--   P(s): **puede demorar** al proceso.
+-   ...
 
 ```cs
-{ await (s > 0); s--; }
+
 ```
 
--   V(s): **nunca demora** al proceso.
+#### ...
+
+-   ...
 
 ```cs
-{ s++; }
+
 ```
 
-## Notas generales
+#### ...
+
+-   ...
+
+```cs
+
+```
 
 -   Nuevamente hay que **achicar lo más posible las secciones críticas**: es decir, cuando usamos un semáforo mutex = 1, lo que esté dentro del P y el V tiene que ser lo más acotado posible. Es por esto que, al igual que en Variables Compartidas, podemos por ejemplo usar contadores locales dentro del bucle que ejecutan muchos procesos, y al finalizar ese bucle actualizar la variable global con esos contadores locales, minimizando drásticamente la cantidad de bloqueos y liberaciones de la sección crítica.
 -   Hay que tener mucho cuidado al inicializar semáforos en 0. Se puede producir deadlock fácilmente si no lo hacemos bien.
