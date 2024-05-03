@@ -84,38 +84,41 @@ Un sistema debe validar un conjunto de 10000 transacciones que se encuentran dis
 **Nota: maximizar la concurrencia.**
 
 ```cs
-cola transacciones; // 10_000 elementos
-bool hayElementos = true;
-int termine = 0
+cola transacciones(10000)(Transaccion)
 int resultados[10] = {[10] 0}
-sem mutexRes[10] = 1;
-sem mutexCola = 1;
-sem mutexTermine = 1;
-
-process Worker[id: 1..7] {
+sem mutexRes[10] = 1
+sem mutexCola = 1
+sem mutexFin = 1
+int cantTerminaron = 0
+process Worker [id: 1..7] {
     Transaccion t; int res;
-    while hayElementos {
-        P(mutexCola)
-        if transacciones.empty() {
-            hayElementos = false
-            V(mutexcola)
-        }
-        else {
+    P(mutexCola)
+    while transacciones.notEmpty() {
             t = transacciones.pop()
             V(mutexCola)
+
             res = Validar(t)
             P(mutexRes[res])
             resultados[res]++
             V(mutexRes[res])
-        }
-    }
-    P(mutexTermine)
-    termine++
-    if termine == 6
-        for i = 0 to 9
-            print(resultados[i])
-    V(mutexTermine)
 
+            P(mutexCola)
+    }
+    V(mutexCola)
+
+    P(mutexFin)
+    cantTerminaron++
+    if cantTerminaron == 7 {    // el último proceso
+        for i=0 to 9
+            print(resultados[i])
+        for i=1 to 6
+            V(esperarFin)   // despertar a los otros 6
+        V(mutexFin)
+    }
+    else {
+        V(mutexFin)
+        P(esperarFin)
+    }
 }
 ```
 

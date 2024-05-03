@@ -605,7 +605,15 @@ process Coordinador {
 
 #### N procesos consumen de una cola de recursos compartidos
 
--   Tenemos N procesos que tienen que consumir una cola de recursos lo más rápido posible.
+-   Tenemos N procesos que tienen que consumir una cola de recursos lo más rápido posible. La estructura es:
+
+```
+P
+while
+    V
+    P
+V
+```
 
 ```cs
 
@@ -614,8 +622,7 @@ cola recursos
 process Proceso [id: 0..N-1] {
     Recurso recurso
     P(mutex)
-    while cant < M {
-        cant++
+    while recursos.notEmpty() {
         recurso = recursos.pop()
         V(mutex)
         // Usa el recurso compartido
