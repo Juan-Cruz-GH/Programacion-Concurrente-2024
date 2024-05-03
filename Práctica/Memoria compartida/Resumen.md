@@ -74,7 +74,7 @@ process Proceso [id: 1..N] {
 <tr><td>
 
 ```cs
-int contador;
+int contador
 process Proceso [id: 1..N] {
     for i = 0 to 10_000 {
         < contador++ >
@@ -85,7 +85,7 @@ process Proceso [id: 1..N] {
 </td><td>
 
 ```cs
-int contador;
+int contador
 process Proceso [id: 1..N] {
     int contadorLocal
     for i = 0 to 10_000 {
@@ -103,7 +103,8 @@ process Proceso [id: 1..N] {
 -   Si queremos que los procesos accedan al recurso compartido según el orden de llegada, necesitamos una Cola compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento:
 
 ```cs
-Cola cola; int siguiente = -1;
+Cola cola
+int siguiente = -1
 process Persona [id: 1..N] {
     while true {
         < if siguiente == -1
@@ -125,7 +126,8 @@ process Persona [id: 1..N] {
 -   Si queremos que los procesos accedan al recurso compartido según el orden de uno de sus atributos, necesitamos una ColaOrdenada compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento:
 
 ```cs
-ColaOrdenada cola; int siguiente = -1;
+ColaOrdenada cola
+int siguiente = -1
 process Persona [id: 1..N] {
     int edad = GetEdad()
     while true {
@@ -260,8 +262,8 @@ process Proceso [id: 1..N] {
 <tr><td>
 
 ```cs
-int contador;
-sem mutex = 1;
+int contador
+sem mutex = 1
 process Proceso [id: 1..N] {
     for i = 0 to 10_000 {
         P(mutex)
@@ -274,8 +276,8 @@ process Proceso [id: 1..N] {
 </td><td>
 
 ```cs
-int contador;
-sem mutex 1;
+int contador
+sem mutex 1
 process Proceso [id: 1..N] {
     int contadorLocal
     for i = 0 to 10_000 {
@@ -304,10 +306,10 @@ process Proceso [id: 1..N] {
 <tr><td>
 
 ```cs
-Cola cola(50);
-sem mutex1 = 1;
-sem mutex2 = 1;
-sem tamañoCola = 50;
+Cola cola(50)
+sem mutex1 = 1
+sem mutex2 = 1
+sem tamañoCola = 50
 process Proceso [id: 1..N] {
     P(tamañoCola)
     P(mutex1)
@@ -324,9 +326,9 @@ process Proceso [id: 1..N] {
 </td><td>
 
 ```cs
-Cola cola(50);
-sem mutex = 1;
-sem tamañoCola = 50;
+Cola cola(50)
+sem mutex = 1
+sem tamañoCola = 50
 process Proceso [id: 1..N] {
     P(tamañoCola)
     P(mutex)
@@ -356,14 +358,14 @@ process Proceso [id: 1..N] {
 -   Se van durmiendo los procesos y una vez llegaron todos el último los despierta a todos "a la vez".
 
 ```cs
-sem mutex = 1;
-sem barrera = 0;
+sem mutex = 1
+sem barrera = 0
 
 process Proceso [id: 0..N-1] {
     P(mutex)
-    contador++;
+    contador++
     if contador == N
-        for i to N
+        for i=0 to N-2
             V(barrera)
     V(mutex)
     P(barrera)
@@ -375,8 +377,8 @@ process Proceso [id: 0..N-1] {
 -   Se van durmiendo los procesos y una vez llegaron todos el Coordinador los despierta a todos "a la vez".
 
 ```cs
-sem espera = 0;
-sem barrera = 0;
+sem espera = 0
+sem barrera = 0
 // Procesos
 process Proceso [id: 0..N-1] {
     V(espera)
@@ -477,6 +479,47 @@ process Proceso [id: 0..N-1] {
     else
         V(dormidos[cola.pop()])
     V(mutex)
+}
+```
+
+#### Orden de llegada con M recursos
+
+-   Si queremos que los procesos accedan a M recursos compartidos según el orden de llegada, necesitamos una Cola compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento y un entero que guarda la cantidad de recursos que quedan:
+
+```cs
+
+Cola procesos
+Cola recursos
+int recursosDisponibles = M
+sem mutexProcesos = 1
+sem mutexRecursos = 1
+sem dormidos[N] = ([N] 0)
+process Proceso [id: 0..N-1] {
+    P(mutexProcesos)
+    if recursosDisponibles != 0 {
+        recursosDisponibles--
+        V(mutexProcesos)
+    }
+    else {
+        cola.push(id)
+        V(mutexProcesos)
+        P(dormidos[id])
+    }
+
+    P(mutexRecursos)
+    r = recursos.pop()
+    V(mutexRecursos)
+    // Usa el recurso compartido
+    P(mutexRecursos)
+    recursos.push(r)
+    V(mutexRecursos)
+
+    P(mutexProcesos)
+    if procesos.empty()
+        recursosDisponibles++
+    else
+        V(dormidos[procesos.pop()])
+    V(mutexProcesos)
 }
 ```
 
@@ -644,6 +687,26 @@ Para que el recurso compartido esté **libre** se deben cumplir dos condiciones 
 1. Que la cola esté vacía.
 2. Que nadie esté usando el recurso en este momento.
 
+#### El último proceso
+
+-   Cuando necesitamos que solo el último proceso en terminar realize una tarea, necesitamos una barrera donde los procesos se duermen y el último en llegar realiza la tarea. Esto se chequea con un if.
+
+```cs
+sem mutex = 1
+sem barrera = 0
+int contador = 0
+process Proceso [id: 0..N-1] {
+    P(mutex)
+    contador++
+    if contador == N
+        // Realiza la tarea
+        for i = 0 to N-2
+            V(barrera)
+    V(mutex)
+    P(barrera)
+}
+```
+
 ---
 
 <center>
@@ -675,7 +738,7 @@ Monitor Nombre {
 }
 
 process P[id: 0..N-1] {
-    nombre.uno();
+    nombre.uno()
 }
 ```
 
@@ -687,13 +750,13 @@ process P[id: 0..N-1] {
 -   La operación **signal_all** despierta a todos los procesos dormidos en la cola de la VC y todos ellos pasan a competir por el acceso.
 
 ```cs
-cond vc;
+cond vc
 
-wait(vc);
+wait(vc)
 
-signal(vc);
+signal(vc)
 
-signal_all(vc);
+signal_all(vc)
 ```
 
 ## Notas generales
