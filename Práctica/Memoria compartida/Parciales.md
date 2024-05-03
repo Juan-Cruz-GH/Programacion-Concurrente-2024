@@ -129,7 +129,45 @@ con capacidad para 100 latas por parte de U usuarios. Además existe un reposito
 **Nota: maximizar la concurrencia; mientras se reponen las latas se debe permitir que otros usuarios puedan agregarse a la fila.**
 
 ```cs
-...
+Cola maquina(Gaseosa)(100)
+Cola usuarios(Usuario)
+bool libre = true
+sem mutexMaquina = 1
+sem seVacio = 0
+sem maquinaRecargada = 0
+sem esperando[U] = ([U] 0)
+
+process Usuario [id: 0..U-1] {
+    P(mutexMaquina)
+    if libre {
+        libre = false
+        V(mutexMaquina)
+    }
+    else {
+        usuarios.push(id)
+        V(mutexMaquina)
+        P(esperando[id])
+    }
+    if maquina.empty() {
+        V(seVacio)
+        P(maquinaRecargada)
+    }
+    Gaseosa g = maquina.pop()
+    P(mutexMaquina)
+    if usuarios.empty()
+        libre = true
+    else
+        V(esperando[usuarios.pop])
+    V(mutexMaquina)
+}
+process Repositor {
+    Cola maquinaRepuesta(Gaseosa)(100)
+    while true {
+        P(seVacio)
+        maquina = maquinaRepuesta
+        V(maquinaRecargada)
+    }
+}
 ```
 
 ---
