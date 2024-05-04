@@ -100,7 +100,8 @@ process Proceso [id: 1..N] {
 
 #### Orden de llegada
 
--   Si queremos que los procesos accedan al recurso compartido según el orden de llegada, necesitamos una Cola compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento:
+-   Los procesos acceden al recurso compartido según el orden de llegada.
+-   Tenemos una Cola compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento.
 
 ```cs
 Cola cola
@@ -123,7 +124,8 @@ process Persona [id: 1..N] {
 
 #### Orden de algun atributo (prioridad)
 
--   Si queremos que los procesos accedan al recurso compartido según el orden de uno de sus atributos, necesitamos una ColaOrdenada compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento:
+-   Los procesos acceden al recurso compartido según el orden de uno de sus atributos.
+-   Tenemos una ColaOrdenada compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento.
 
 ```cs
 ColaOrdenada cola
@@ -147,11 +149,12 @@ process Persona [id: 1..N] {
 
 #### Orden de identificador (ID)
 
--   Si queremos que los procesos accedan al recurso compartido según el orden de sus IDs, necesitamos una variable compartida inicializada en 0 que se irá incrementando de a 1 simbolizando los turnos de los procesos. Los demás procesos esperan a que siguiente sea su ID:
+-   Los procesos acceden al recurso compartido según el orden de sus IDs.
+-   Tenemos una variable compartida inicializada en 0 que se irá incrementando de a 1 simbolizando los turnos de los procesos. Los demás procesos esperan a que siguiente sea su ID.
 
 ```cs
-int siguiente = 1
-process Proceso [id: 1..N] {
+int siguiente = 0
+process Proceso [id: 0..N-1] {
     < await (siguiente == id) >
     // Usa el recurso compartido
     siguiente++

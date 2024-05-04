@@ -73,7 +73,7 @@ semáforo++
 
 ```cs
 sem mutex = 1
-process Proceso [id: 1..N] {
+process Proceso [id: 0..N-1] {
     P(mutex)
     // Cualquier proceso accede primero a la sección crítica. Una vez se libera, cualquier otro pasa.
     V(mutex)
@@ -96,9 +96,9 @@ process Proceso [id: 1..N] {
 <tr><td>
 
 ```cs
-int contador
+int contador = 0
 sem mutex = 1
-process Proceso [id: 1..N] {
+process Proceso [id: 0..N-1] {
     for i = 0 to 10_000 {
         P(mutex)
         contador++
@@ -110,13 +110,12 @@ process Proceso [id: 1..N] {
 </td><td>
 
 ```cs
-int contador
-sem mutex 1
-process Proceso [id: 1..N] {
-    int contadorLocal
-    for i = 0 to 10_000 {
+int contador = 0
+sem mutex = 1
+process Proceso [id: 0..N-1] {
+    int contadorLocal = 0
+    for i = 0 to 10_000
         contadorLocal++
-    }
     P(mutex)
     contador += contadorLocal
     V(mutex)
@@ -140,11 +139,11 @@ process Proceso [id: 1..N] {
 <tr><td>
 
 ```cs
-Cola cola(50)
+Cola cola(50)(int)
 sem mutex1 = 1
 sem mutex2 = 1
 sem tamañoCola = 50
-process Proceso [id: 1..N] {
+process Proceso [id: 0..N-1] {
     P(tamañoCola)
     P(mutex1)
     int elemento = cola.pop()
@@ -160,10 +159,10 @@ process Proceso [id: 1..N] {
 </td><td>
 
 ```cs
-Cola cola(50)
+Cola cola(50)(int)
 sem mutex = 1
 sem tamañoCola = 50
-process Proceso [id: 1..N] {
+process Proceso [id: 0..N-1] {
     P(tamañoCola)
     P(mutex)
     int elemento = cola.pop()
@@ -182,9 +181,18 @@ process Proceso [id: 1..N] {
 #### Semáforos inicializados en 0
 
 -   Hay que tener mucho cuidado al inicializar semáforos en 0. Se puede producir deadlock fácilmente si no lo hacemos bien.
+-   En el ejemplo ambos procesos se bloquean ya que se duermen en el P y ninguno de los 2 llega a hacer el V.
 
 ```cs
-??
+sem espera = 0
+process A {
+    P(espera)
+    V(espera)
+}
+process B {
+    P(espera)
+    V(espera)
+}
 ```
 
 #### Barreras
@@ -201,13 +209,16 @@ process Proceso [id: 1..N] {
 Se van durmiendo los procesos y una vez llegaron todos el último los despierta al resto "a la vez".
 
 ```cs
+int contador = 0
 sem mutex = 1
 sem barrera = 0
-
 process Proceso [id: 0..N-1] {
     P(mutex)
     contador++
     if contador == N
+        // El último proceso
+        // puede realizar una tarea él solo si quiere
+        // RealizarTarea()
         for i=0 to N-2
             V(barrera)
     V(mutex)
@@ -222,19 +233,17 @@ Se van durmiendo los procesos y una vez llegaron todos el Coordinador los despie
 ```cs
 sem espera = 0
 sem barrera = 0
-// Procesos
+
 process Proceso [id: 0..N-1] {
     V(espera)
     P(barrera)
 }
 
 process Coordinador {
-    for i = 0 to N-1 {
+    for i = 0 to N-1
         P(espera)
-    }
-    for i = 0 to N-1 {
+    for i = 0 to N-1
         V(barrera)
-    }
 }
 ```
 
@@ -253,31 +262,12 @@ Para que el recurso compartido esté **libre** se deben cumplir dos condiciones 
 1. Que la cola esté vacía.
 2. Que nadie esté usando el recurso en este momento.
 
-#### El último proceso
-
--   Cuando necesitamos que solo el último proceso en terminar realize una tarea, necesitamos una barrera donde los procesos se duermen y el último en llegar realiza la tarea. Esto se chequea con un if.
-
-```cs
-sem mutex = 1
-sem barrera = 0
-int contador = 0
-process Proceso [id: 0..N-1] {
-    P(mutex)
-    contador++
-    if contador == N
-        // Realiza la tarea
-        for i = 0 to N-2
-            V(barrera)
-    V(mutex)
-    P(barrera)
-}
-```
-
 ## Tipos de ejercicios
 
 #### Límite con 2 tipos de procesos
 
--   Cuando tenemos 2 tipos de procesos distintos y queremos que solo X cantidad del primer tipo de proceso esté en la sección crítica y solo Y del segundo tipo, y solo Z en total, tenemos que declarar los 3 semáforos y con los P y V ir de lo particular a lo general.
+-   Hay 2 tipos de procesos distintos y solo X cantidad del primer tipo de proceso puede estar en la sección crítica, solo Y del segundo tipo, y solo Z en total.
+-   Tenemos los 3 semáforos y con los P y V ir de lo particular a lo general.
 
 ```cs
 sem tipo1 = X
@@ -342,10 +332,12 @@ process Consumidor {
   </thead>
 <tr><td>
 
-Si queremos que los procesos accedan al recurso compartido según el orden de llegada, necesitamos una Cola compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento:
+-   Los procesos acceden al recurso compartido según el orden de llegada.
+-   Tenemos una Cola compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento además de dormirse en su semáforo privado.
+-   Cuando el proceso actual termina de usar el recurso despierta al siguiente en la cola o pone libre en true si no hay nadie más.
 
 ```cs
-Cola cola
+Cola cola(int)
 bool libre = true
 sem mutex = 1
 sem dormidos[N] = ([N] 0)
@@ -372,11 +364,13 @@ process Proceso [id: 0..N-1] {
 
 </td><td>
 
-Si queremos que los procesos accedan a M recursos compartidos según el orden de llegada, necesitamos una Cola compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento y un entero que guarda la cantidad de recursos que quedan:
+-   Los procesos acceden a M recursos compartidos según el orden de llegada.
+-   Tenemos una Cola compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento además de dormirse en su semáforo privado, y un entero que guarda la cantidad de recursos que quedan.
+-   Cuando el proceso actual termina de usar el recurso despierta al siguiente en la cola o aumenta la cantidad de recursos disponibles si no hay nadie más.
 
 ```cs
-Cola procesos
-Cola recursos
+Cola procesos(int)
+Cola recursos(M)(int)
 int recursosDisponibles = M
 sem mutexProcesos = 1
 sem mutexRecursos = 1
@@ -424,14 +418,16 @@ process Proceso [id: 0..N-1] {
   </thead>
 <tr><td>
 
-Si queremos que los procesos accedan al recurso compartido según el orden de llegada mediante un Coordinador, necesitamos una Cola compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento y luego el Coordinador los va despertando:
+-   Los procesos acceden al recurso compartido según el orden de llegada mediante un Coordinador.
+-   Tenemos una Cola compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento además de dormirse en su semáforo privado.
+-   Cuando el proceso actual termina de usar el recurso le avisa al Coordinador el cual despierta al siguiente en la cola.
 
 ```cs
+Cola cola(int)
 sem esperando[N] = ([N] 0)
 sem mutex = 1
 sem pedidos = 0
 sem termine = 0
-Cola cola
 process Proceso [id: 0..N-1] {
     P(mutex)
     cola.push(id)
@@ -457,18 +453,21 @@ process Coordinador {
 
 </td><td>
 
-Si queremos que los procesos accedan a los recursos compartidos según el orden de llegada mediante un Coordinador, necesitamos una Cola compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento y luego el Coordinador los va despertando:
+-   Los procesos acceden a M recursos compartidos según el orden de llegada mediante un Coordinador.
+-   Tenemos una Cola compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento además de dormirse en su semáforo privado.
+-   El proceso recibe el recurso que le toca vía un arreglo compartido, en su posición.
+-   Cuando el proceso actual termina de usar el recurso le avisa al Coordinador el cual despierta al siguiente en la cola.
 
 ```cs
+Cola cola(int)
+Cola recursos(M)(int)
+int miRecurso[M]
 sem esperando[N] = ([N] 0)
 sem cantidadRecursos = M
 sem mutexProcesos = 1
 sem mutexRecursos = 1
 sem pedidos = 0
 sem termine = 0
-Cola cola
-Cola recursos(M)
-int miRecurso[M]
 process Proceso [id: 0..N-1] {
     P(mutexProcesos)
     cola.push(id)
@@ -503,11 +502,13 @@ process Coordinador {
 
 #### Orden de algun atributo (prioridad)
 
--   Si queremos que los procesos accedan al recurso compartido según el orden de uno de sus atributos, necesitamos una ColaOrdenada compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento:
+-   Los procesos acceden al recurso compartido según el orden de uno de sus atributos.
+-   Tenemos una ColaOrdenada compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento además de dormirse en su semáforo privado.
+-   Cuando el proceso actual termina de usar el recurso despierta al siguiente en la cola o pone libre en true si no hay nadie más.
 
 ```cs
 
-ColaOrdenada cola
+ColaOrdenada cola(int, int)
 bool libre = true
 sem mutex = 1
 sem dormidos[N] = ([N] 0)
@@ -535,7 +536,9 @@ process Proceso [id: 0..N-1] {
 
 #### Orden de identificador (ID)
 
--   Si queremos que los procesos accedan al recurso compartido según el orden de sus IDs, necesitamos semáforos privados:
+-   Los procesos acceden al recurso compartido según el orden de sus IDs.
+-   Tenemos semáforos privados en los cuales los procesos se duermen si no es su turno.
+-   El proceso actual, cuando termina, despierta al siguiente.
 
 ```cs
 sem esperando[N] = ([N] 0)
@@ -561,9 +564,8 @@ V
 ```
 
 ```cs
-
+Cola recursos(int)
 sem mutex = 1
-cola recursos
 process Proceso [id: 0..N-1] {
     Recurso recurso
     P(mutex)
