@@ -187,9 +187,18 @@ process Proceso [id: 1..N] {
 ??
 ```
 
-#### Barrera de un uso
+#### Barreras
 
--   Se van durmiendo los procesos y una vez llegaron todos el último los despierta a todos "a la vez".
+<table>
+  <thead>
+    <tr>
+      <th>Barrera de un uso</th>
+      <th>Barrera de un uso vía Coordinador</th>
+    </tr>
+  </thead>
+<tr><td>
+
+Se van durmiendo los procesos y una vez llegaron todos el último los despierta al resto "a la vez".
 
 ```cs
 sem mutex = 1
@@ -206,9 +215,9 @@ process Proceso [id: 0..N-1] {
 }
 ```
 
-#### Barrera de un uso vía Coordinador
+</td><td>
 
--   Se van durmiendo los procesos y una vez llegaron todos el Coordinador los despierta a todos "a la vez".
+Se van durmiendo los procesos y una vez llegaron todos el Coordinador los despierta a todos "a la vez".
 
 ```cs
 sem espera = 0
@@ -228,6 +237,43 @@ process Coordinador {
     }
 }
 ```
+
+</td></tr>
+</table>
+
+#### Passing The Condition vs Passing The Baton
+
+-   En el método Passing The Baton, el control del semáforo es transferido del proceso que lo tiene actualmente, al siguiente. Suele usarse con semáforos binarios.
+-   En el método Passing The Condition, los procesos se señalizan utilizando variables booleanas compartidas. Suele usarse con semáforos contadores.
+
+#### Cuándo está libre el recurso compartido?
+
+Para que el recurso compartido esté **libre** se deben cumplir dos condiciones simultáneamente:
+
+1. Que la cola esté vacía.
+2. Que nadie esté usando el recurso en este momento.
+
+#### El último proceso
+
+-   Cuando necesitamos que solo el último proceso en terminar realize una tarea, necesitamos una barrera donde los procesos se duermen y el último en llegar realiza la tarea. Esto se chequea con un if.
+
+```cs
+sem mutex = 1
+sem barrera = 0
+int contador = 0
+process Proceso [id: 0..N-1] {
+    P(mutex)
+    contador++
+    if contador == N
+        // Realiza la tarea
+        for i = 0 to N-2
+            V(barrera)
+    V(mutex)
+    P(barrera)
+}
+```
+
+## Tipos de ejercicios
 
 #### Límite con 2 tipos de procesos
 
@@ -287,10 +333,18 @@ process Consumidor {
 
 #### Orden de llegada
 
--   Si queremos que los procesos accedan al recurso compartido según el orden de llegada, necesitamos una Cola compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento:
+<table>
+  <thead>
+    <tr>
+      <th>Con 1 recurso</th>
+      <th>Con M recursos</th>
+    </tr>
+  </thead>
+<tr><td>
+
+Si queremos que los procesos accedan al recurso compartido según el orden de llegada, necesitamos una Cola compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento:
 
 ```cs
-
 Cola cola
 bool libre = true
 sem mutex = 1
@@ -316,12 +370,11 @@ process Proceso [id: 0..N-1] {
 }
 ```
 
-#### Orden de llegada con M recursos
+</td><td>
 
--   Si queremos que los procesos accedan a M recursos compartidos según el orden de llegada, necesitamos una Cola compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento y un entero que guarda la cantidad de recursos que quedan:
+Si queremos que los procesos accedan a M recursos compartidos según el orden de llegada, necesitamos una Cola compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento y un entero que guarda la cantidad de recursos que quedan:
 
 ```cs
-
 Cola procesos
 Cola recursos
 int recursosDisponibles = M
@@ -356,6 +409,97 @@ process Proceso [id: 0..N-1] {
     V(mutexProcesos)
 }
 ```
+
+</td></tr>
+</table>
+
+#### Orden de llegada con Coordinador
+
+<table>
+  <thead>
+    <tr>
+      <th>Con 1 recurso</th>
+      <th>Con M recursos</th>
+    </tr>
+  </thead>
+<tr><td>
+
+Si queremos que los procesos accedan al recurso compartido según el orden de llegada mediante un Coordinador, necesitamos una Cola compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento y luego el Coordinador los va despertando:
+
+```cs
+sem esperando[N] = ([N] 0)
+sem mutex = 1
+sem pedidos = 0
+sem termine = 0
+Cola cola
+process Proceso [id: 0..N-1] {
+    P(mutex)
+    cola.push(id)
+    V(mutex)
+    V(pedidos)
+    P(esperando[id])
+    // Usa el recurso compartido
+    V(termine)
+
+}
+process Coordinador {
+    int siguiente
+    for i = 0 to N-1 {
+        P(pedidos)
+        P(mutex)
+        siguiente = cola.pop()
+        V(mutex)
+        V(esperando[siguiente])
+        P(termine)
+    }
+}
+```
+
+</td><td>
+
+Si queremos que los procesos accedan a los recursos compartidos según el orden de llegada mediante un Coordinador, necesitamos una Cola compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento y luego el Coordinador los va despertando:
+
+```cs
+sem esperando[N] = ([N] 0)
+sem cantidadRecursos = M
+sem mutexProcesos = 1
+sem mutexRecursos = 1
+sem pedidos = 0
+sem termine = 0
+Cola cola
+Cola recursos(M)
+int miRecurso[M]
+process Proceso [id: 0..N-1] {
+    P(mutexProcesos)
+    cola.push(id)
+    V(mutexProcesos)
+    V(pedidos)
+    P(esperando[id])
+    recurso = miRecurso[id]
+    // Sección crítica
+    P(mutexRecursos)
+    recursos.push(recurso)
+    V(mutexRecursos)
+    V(termine)
+    V(cantidadRecursos)
+}
+process Coordinador {
+    int siguiente, recurso
+    P(pedidos)
+    P(mutexProcesos)
+    siguiente = cola.pop()
+    V(mutexProcesos)
+    P(cantidadRecursos)
+    P(mutexRecursos)
+    recurso = recursos.pop()
+    V(mutexRecursos)
+    miRecurso[siguiente] = recurso
+    V(esperando[siguiente])
+}
+```
+
+</td></tr>
+</table>
 
 #### Orden de algun atributo (prioridad)
 
@@ -404,82 +548,6 @@ process Proceso [id: 0..N-1] {
 }
 ```
 
-#### Orden de llegada con Coordinador
-
--   Si queremos que los procesos accedan al recurso compartido según el orden de llegada mediante un Coordinador, necesitamos una Cola compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento y luego el Coordinador los va despertando:
-
-```cs
-sem esperando[N] = ([N] 0)
-sem mutex = 1
-sem pedidos = 0
-sem termine = 0
-Cola cola
-process Proceso [id: 0..N-1] {
-    P(mutex)
-    cola.push(id)
-    V(mutex)
-    V(pedidos)
-    P(esperando[id])
-    // Usa el recurso compartido
-    V(termine)
-
-}
-process Coordinador {
-    int siguiente
-    for i = 0 to N-1 {
-        P(pedidos)
-        P(mutex)
-        siguiente = cola.pop()
-        V(mutex)
-        V(esperando[siguiente])
-        P(termine)
-    }
-}
-```
-
-#### Orden de llegada con Coordinador y más de 1 recurso compartido
-
--   Si queremos que los procesos accedan a los recursos compartidos según el orden de llegada mediante un Coordinador, necesitamos una Cola compartida a la cual los procesos se encolarán mientras haya otro proceso utilizando la SC en ese momento y luego el Coordinador los va despertando:
-
-```cs
-sem esperando[N] = ([N] 0)
-sem cantidadRecursos = M
-sem mutexProcesos = 1
-sem mutexRecursos = 1
-sem pedidos = 0
-sem termine = 0
-Cola cola
-Cola recursos(M)
-int miRecurso[M]
-process Proceso [id: 0..N-1] {
-    P(mutexProcesos)
-    cola.push(id)
-    V(mutexProcesos)
-    V(pedidos)
-    P(esperando[id])
-    recurso = miRecurso[id]
-    // Sección crítica
-    P(mutexRecursos)
-    recursos.push(recurso)
-    V(mutexRecursos)
-    V(termine)
-    V(cantidadRecursos)
-}
-process Coordinador {
-    int siguiente, recurso
-    P(pedidos)
-    P(mutexProcesos)
-    siguiente = cola.pop()
-    V(mutexProcesos)
-    P(cantidadRecursos)
-    P(mutexRecursos)
-    recurso = recursos.pop()
-    V(mutexRecursos)
-    miRecurso[siguiente] = recurso
-    V(esperando[siguiente])
-}
-```
-
 #### N procesos consumen de una cola de recursos compartidos
 
 -   Tenemos N procesos que tienen que consumir una cola de recursos lo más rápido posible. La estructura es:
@@ -506,37 +574,5 @@ process Proceso [id: 0..N-1] {
         P(mutex)
     }
     V(mutex)
-}
-```
-
-#### Passing The Condition vs Passing The Baton
-
--   En el método Passing The Baton, el control del semáforo es transferido del proceso que lo tiene actualmente, al siguiente. Suele usarse con semáforos binarios.
--   En el método Passing The Condition, los procesos se señalizan utilizando variables booleanas compartidas. Suele usarse con semáforos contadores.
-
-#### Cuándo está libre el recurso compartido?
-
-Para que el recurso compartido esté **libre** se deben cumplir dos condiciones simultáneamente:
-
-1. Que la cola esté vacía.
-2. Que nadie esté usando el recurso en este momento.
-
-#### El último proceso
-
--   Cuando necesitamos que solo el último proceso en terminar realize una tarea, necesitamos una barrera donde los procesos se duermen y el último en llegar realiza la tarea. Esto se chequea con un if.
-
-```cs
-sem mutex = 1
-sem barrera = 0
-int contador = 0
-process Proceso [id: 0..N-1] {
-    P(mutex)
-    contador++
-    if contador == N
-        // Realiza la tarea
-        for i = 0 to N-2
-            V(barrera)
-    V(mutex)
-    P(barrera)
 }
 ```
