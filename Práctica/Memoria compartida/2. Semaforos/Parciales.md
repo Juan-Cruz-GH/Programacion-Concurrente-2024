@@ -359,11 +359,33 @@ process Coordinador [id: 0..3] {
 
 ## - ❓
 
-Un banco decide entregar promociones a sus clientes por medio de su agente de prensa, el cual lo hace de la siguiente manera:el agente debe entregar 50 premios entre los 1000 clientes,para esto, obtiene al azar un número de cliente y le entrega el premio, una vez que este lo toma continúa con la entrega.
+Un banco decide entregar promociones a sus clientes por medio de su agente de prensa, el cual lo hace de la siguiente manera: el agente debe entregar 50 premios entre los 1000 clientes, para esto, obtiene al azar un número de cliente y le entrega el premio, una vez que este lo toma continúa con la entrega.
 **Notas: Cuando los 50 premios han sido entregados el agente y los clientes terminan su ejecución; No se puede utilizar una estructura de tipo arreglo para almacenar los premios de los clientes.**
 
 ```cs
-??
+Cola premiosEntregados(50)(Premio, int)
+sem mutex = 1
+sem esperarPremios = 0
+process Cliente [id: 0..999] {
+    Premio premio
+    int idCliente
+    P(esperarPremios)
+    P(mutex)
+    premio, idCliente = premiosEntregados.pop()
+    if idCliente != id
+        premiosEntregados.push(p, idC)
+    V(mutex)
+}
+process Banco {
+    Premio premios[50]
+    for i=0 to 49 {
+        int numeroClienteAzar = GetNumero() // Obtiene al azar un número cliente
+        P(mutex)
+        premiosEntregados.push(premios[i], numeroClienteAzar)
+        V(mutex)
+        V(esperarPremios)
+    }
+}
 ```
 
 ## - ❓
