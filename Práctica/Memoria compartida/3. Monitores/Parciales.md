@@ -14,7 +14,7 @@ process Escalador [id: 0..29] {
     // Usa el paso
     Paso.salir()
 }
-monitor Paso {
+Monitor Paso {
     cond espera
     bool libre = true
     int cantEsperando = 0
@@ -51,7 +51,7 @@ process Vendedor [id: 1..20] {
     cantVendida = Vender()
     Coordinadores[miEquipo].fin(cantVendida, total)
 }
-monitor Coordinadores[id: 1..5] {
+Monitor Coordinadores[id: 1..5] {
     cond vendedores
     int cantLlegar, cantSalir, totalVendido = 0
     procedure inicio() {
@@ -61,7 +61,7 @@ monitor Coordinadores[id: 1..5] {
         else
             wait(vendedores)
     }
-    procedure fin(int cantVendio: IN, int totalVendido: OUT) {
+    procedure fin(IN int cantVendio, OUT int totalVendido) {
         cantSalir++
         totalVendido += cantVendio  // No deberíamos tener 5 variables total, una por cada grupo?
         if cantSalir == 4
@@ -81,14 +81,13 @@ En una elección estudiantil, se utiliza una máquina para voto electrónico. Ex
 Monitor Mesa {
     cond miTurno[N]
     cond autoridad, salio
-    colaOrdenada(int, int) personas
+    ColaOrdenada personas(int, int)
 
-    procedure llegada(int id: IN, int prioridad: IN) {
+    procedure llegada(IN int id, IN int prioridad) {
         personas.push(prioridad, id) // Inserta ordenado por prioridad de forma ascendiente
-        signal(autoridad)            // avisarle a la autoridad que la persona quiere pasar a votar
+        signal(autoridad)   // Avisarle a la autoridad que la persona quiere pasar a votar
         wait(miTurno[id])
     }
-
     procedure siguiente() {
         if empty(personas)
             wait(autoridad)
@@ -96,20 +95,19 @@ Monitor Mesa {
         signal(miTurno[id])
         wait(salio)
     }
-
     procedure salida() {
         signal(salio)
     }
 }
 
-Process Persona [id: 0..N-1] {
+process Persona [id: 0..N-1] {
     int prioridad = obtenerPrioridad()  // 1 = Normal | 0 = Anciano/Embarazada
     Mesa.llegada(id, prioridad) // solicitar acceso
     Votar()
     Mesa.salida() // liberar
 }
 
-Process AutoridadDeMesa {
+process AutoridadDeMesa {
     while true
         Mesa.siguiente() // dar acceso para votar a la siguiente persona
 }
@@ -147,7 +145,7 @@ Monitor SubsistemaES {
     }
 }
 
-Process Proceso [id: 1..20] {
+process Proceso [id: 1..20] {
     int prioridad = obtenerPrioridad()
     while true {
         resultados = Procesar()
@@ -158,37 +156,37 @@ Process Proceso [id: 1..20] {
 }
 ```
 
-## Ejercicio 2) - Primer recuperatorio 2022 ❓
+## Ejercicio 2) - Primer recuperatorio 2022 ✅
 
 En una planta verificadora de vehículos existen 5 estaciones de verificación. Hay 75 vehículos que van para ser verificados, cada uno conoce el número de estación a la cual debe ir. Cada vehículo se dirige a la estación correspondiente y espera a que lo atiendan. Una vez que le entregan el comprobante de verificación, el vehículo se retira. Considere que en cada estación se atienden a los vehículos de acuerdo con el orden de llegada.
 **Nota: maximizar la concurrencia.**
 
 ```cs
-Monitor Admin [ id: 0..4] {
+Monitor Admin [id: 0..4] {
     cola vehiculos
     string comprobante
     cond esperaVehiculos, esperaEstacion, fin
 
-    procedure esperarAtencion(id: IN int, comp: OUT string) {
+    procedure esperarAtencion(IN int id, OUT string comp) {
         vehiculos.push(id)
         signal(esperaEstacion)
         wait(esperaVehiculos)   // Espera a que esté su comprobante
         comp = comprobante
         signal(fin) // Avisa que tomó el comprobante y que se va
     }
-    procedure siguiente(idVehiculo: OUT int) {
+    procedure siguiente(OUT int idVe) {
         if empty(vehiculos)
             wait(esperaEstacion)
         idVehiculo = vehiculos.pop()
     }
-    procedure entregarComprobante(comp: IN string) {
+    procedure entregarComprobante(IN string comp) {
         comprobante = comp
         signal(esperaVehiculos) // Despierta al vehículo para que tome el comprobante
         wait(fin)   // Espera a que haya tomado el comprobante para atender al siguiente vehículo
     }
 }
 
-Monitor Estacion [ id: 0..4] {
+process Estacion [id: 0..4] {
     string comprobante
     int idVehiculo
     while true {
@@ -198,7 +196,7 @@ Monitor Estacion [ id: 0..4] {
     }
 }
 
-process Vehiculo [ id: 0..74] {
+process Vehiculo [id: 0..74] {
 	string comprobante
     int numeroEstacion = GetNumero()
     Admin[numeroEstacion].esperarAtencion(id, comprobante)
@@ -212,7 +210,7 @@ Una boletería vende E entradas para un partido, y hay P personas (P>E) que quie
 ```cs
 Monitor Boleteria {
 	cantidadEntradas = E
-	Procedure Comprar(out numero) {
+	procedure Comprar(OUT int numero) {
 		if (cantidadEntradas == 0) {
 			numero = -1
 			print("No hay mas entradas")
@@ -227,7 +225,7 @@ Monitor Fila {
     personasEsperando = 0
     libre = true
     cond cola
-    Procedure HacerFila() {
+    procedure HacerFila() {
         if libre
 			libre = false
 		else {
@@ -235,7 +233,7 @@ Monitor Fila {
 			wait(cola)
 		}
     }
-    Procedure Salir() {
+    procedure Salir() {
         if (personasEsperando == 0)
             libre = true
         else {
@@ -244,8 +242,8 @@ Monitor Fila {
         }
     }
 }
-Process persona[id:1..P]{
-    Fila.HacerFila()    // Tener 2 monitores permite que se puedan encolar mientras una persona esta siendo atendida
+process persona[id: 1..P]{
+    Fila.HacerFila()    // Tener 2 Monitores permite que se puedan encolar mientras una persona esta siendo atendida
     numero = Boleteria.Comprar()
 	Fila.Salir()
 }
@@ -279,7 +277,7 @@ Monitor Puente {
 	}
 }
 
-process Auto [ id: 0..N-1] {
+process Auto [id: 0..N-1] {
 	Puente.Entrar()
 	Pasar()
 	Puente.Salir()
@@ -333,9 +331,9 @@ Monitor Horno {
     }
 }
 
-Process Estudiante [id: 1..E] {
+process Estudiante[id: 1..E] {
     Horno.pedir()
-    sleep(rand()) // Calentar
+    // Usa el horno
     Horno.liberar()
 }
 ```
