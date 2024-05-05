@@ -318,7 +318,43 @@ Simular un exámen técnico para concursos Nodocentes en la Facultad, en el mism
 **Nota: maximizar la concurrencia; sólo usar procesos que representen a las personas y coordinadores; todos los procesos deben terminar.**
 
 ```cs
-??
+string examenes[4]
+string notas[100]
+Cola colas[4](string)
+sem esperarIntegrantes[25] = ([25] 0)
+sem esperarExamen[4] = ([4] 0)
+sem esperarNota[100] = ([100] 0)
+sem mutexExamen[4] = ([4] 1)
+sem examenTerminado[4] = ([4] 0)
+process Persona [id: 0..99] {
+    int miConcurso = GetConcurso() // Valor entre 0 y 3
+    V(esperarIntegrantes[miConcurso])   // Avisa a su Coordinador que llegó
+    P(esperarExamen[miConcurso])    // Espera que su Coordinador ponga el exámen
+    string examen = examenes[miConcurso]    // Obtiene su examen
+    string examenResuelto = Resolver(examen)    // Lo resuelve
+
+    P(mutexExamen[miConcurso])
+    colas[miConcurso].push(examenResuelto, id)  // Le envía a su Coordinador el exámen
+    V(mutexExamen[miConcurso])
+    V(examenTerminado[miConcurso])
+
+    P(esperarNota[id])  // Espera que su Coordinador lo corriga
+    string miNota = notas[id]   // Obtiene su nota
+}
+process Coordinador [id: 0..3] {
+    string examen
+    int persona
+    for i=0 to 24
+        P(esperarIntegrantes[id])   // Espera a los 25 integrantes de su grupo
+    examenes[id] = EntregarExamen() // Pone el examen de su grupo
+    V(esperarExamen[id])    // Avisa a su grupo que ya está el exámen
+    P(examenTerminado[id])  // Espera que haya examenes terminados
+    P(mutexExamen[id])
+    examen, persona = colas[id].pop()   // Obtiene el exámen terminado por orden de llegada
+    V(mutexExamen[id])
+    notas[persona] = Corregir(examen)
+    V(esperarNota[persona]) // Le avisa a la persona que ya está su exámen
+}
 ```
 
 ## - ❓
