@@ -115,45 +115,45 @@ Process AutoridadDeMesa {
 }
 ```
 
-## Ejercicio 2) - Segundo recuperatorio 2022 ❓
+## Ejercicio 2) - Segundo recuperatorio 2022 ✅
 
 En un sistema operativo se ejecutan 20 procesos que periódicamente realizan cierto cómputo mediante la función Procesar(). Los resultados de dicha función son persistidos en un archivo, para lo que se requiere de acceso al subsistema de E/S. Sólo un proceso a la vez puede hacer uso del subsistema de E/S, y el acceso al mismo se define por la prioridad del proceso (menor valor indica mayor prioridad).
 
 ```cs
 Monitor SubsistemaES {
     int esperando = 0
-    int usando = 0
+    bool libre = true
     cond colas [N]
-    Cola en_espera(int, int)
+    ColaOrdenada procesos(int, int)
 
-    procedure pedir (int id, int prioridad) {
-        if (usando > 0) { // está ocupado
-
-        esperando++ // incrementar contador para indicar que hay uno más en espera
-        en_espera.push(prioridad, id) // inserta ordenado por prioridad
-        wait (colas [id]) // dormir en cola condition individual
+    procedure pedir(IN int id, IN int prioridad) {
+        if libre
+            libre = false
+        else {
+            esperando++
+            procesos.push(id, prioridad) // Inserta ordenado por prioridad
+            wait(colas[id])
         }
-        else // está libre
-            usando++ // marcar como ocupado
+    }
     }
     procedure liberar() {
-        if (esperando > 0) { // si hay procesos esperando
-            int id = en_espera.pop() // seleccionar el de mayor prioridad
-            signal (colas [id])  // despertar al de mayor prioridad
-            esperando-- // decrementar para indicar que hay uno menos en espera
+        if esperando == 0
+            libre = true
+        else {
+            esperando--
+            int id = procesos.pop().id
+            signal(colas[id])
         }
-        else
-            usando-- //marcar como libre
     }
 }
 
-Process Proceso [i: 1..20] {
+Process Proceso [id: 1..20] {
     int prioridad = obtenerPrioridad()
-    While (true) {
-        resultados = Procesar () // computar
-        SubsistemaES.pedir (i,edad) // solicitar acceso
-        Persistir (resultados) // usar subsistema E/S
-        SubsistemaES.liberar() // liberar
+    while true {
+        resultados = Procesar()
+        SubsistemaES.pedir(id, prioridad)
+        Persistir(resultados)
+        SubsistemaES.liberar()
     }
 }
 ```
