@@ -305,7 +305,56 @@ Cuando un proceso está dentro de la sección crítica mantiene el "baton".
 Cuando ese proceso sale de la SC le pasa el baton al siguiente proceso según un cierto orden (de llegada, de id, etc). Si no hay ningun proceso en la cola, entonces el baton lo toma el primer nuevo proceso que llegue.
 
 ### 9. Modifique las soluciones de Lectores-Escritores con semáforos de modo de no permitir más de 10 lectores simultáneos en la BD y además que no se admita el ingreso a más lectores cuando hay escritores esperando.
-...
+
+```cs
+monitor ControladorRW {
+   int cantLectores = 0, cantEscritores = 0, lectoresDormidos = 0, escritoresDormidos = 0;
+   cond ok_leer, ok_escribir;
+
+   procedure pedido_leer() {
+      if (cantEscritores > 0) or (cantLectores == 10) or (escritoresDormidos > 0){
+         lectoresDormidos++;
+         wait(ok_leer);
+      }
+      else
+         cantLectores++;
+   }
+
+   procedure libera_leer() {
+      cantLectores--;
+      if (cantLectores == 0) and (escritoresDormidos > 0) {
+         escritoresDormidos--;
+         signal(ok_escribir);
+         cantEscritores++;
+      }
+   }
+
+   procedure pedido_escribir() {
+      if (cantLectores > 0) OR (cantEscritores > 0) {
+         escritoresDormidos++;
+         wait(ok_escribir);
+      }
+      else
+         cantEscritores++;
+   }
+
+   procedure libera_escribir() {
+      if (escritoresDormidos > 0) {
+         escritoresDormidos--;
+         signal(ok_escribir);
+      }
+      else {
+         cantEscritores--;
+         if (lectoresDormidos > 0) {
+            cantLectores = lectoresDormidos;
+            lectoresDormidos = 0;
+            signal_all(ok_leer);
+         }
+      }
+   }
+}
+```
+
 ---
 
 <center>
@@ -316,11 +365,25 @@ Cuando ese proceso sale de la SC le pasa el baton al siguiente proceso según un
 
 ### 1. Describa el funcionamiento de los monitores como herramienta de sincronización.
 
+Los monitores son estructuras que actúan como administradores de recursos compartidos. Proveen exclusión mutua de forma implícita mediante sus procedures y pueden hacer uso de las variables condición para sincronización por condición.
+
 ### 2. ¿Qué diferencias existen entre las disciplinas de señalización “Signal and wait” y “Signal and continue”?
+
+En Signal and Wait el proceso que hace el signal pasa a competir por acceder nuevamente al monitor, mientras que el proceso despertado pasa a ejecutar dentro del monitor a partir del wait.
+
+En Signal and Continue el proceso que hace el signal continúa usando el monitor hasta terminar el procedure, y el proceso despertado pasa a competir por acceder nuevamente al monitor para continuar en la instrucción siguiente a donde se durmió.
 
 ### 3. ¿En qué consiste la técnica de Passing the Condition y cuál es su utilidad en la resolución de problemas con monitores? ¿Qué relación encuentra entre passing the condition y passing the baton?
 
+La técnica Passing the Condition consiste en que los procesos se duermen o pasan a ejecutar una parte del monitor dependiendo de alguna condición interna del monitor.
+
+Luego, similar a Passing the Baton, el proceso que está ejecutando el monitor actualmente, cuando sale, despierta al próximo proceso, el primero que se había dormido.
+
+La relación entre estas dos técnicas es que ambas permiten respetar cierto orden de ejecución.
+
 ### 4. Desarrolle utilizando monitores una solución centralizada al problema de los filósofos, con un administrador único de los tenedores, y posiciones libres para los filósofos (es decir, cada filósofo puede comer en cualquier posición siempre que tenga los dos tenedores correspondientes).
+
+...
 
 ### 5. Sea la siguiente solución propuesta al problema de alocación SJN:
 
@@ -342,20 +405,40 @@ monitor SJN {
 
 ##### a) Funciona correctamente con disciplina de señalización Signal and Continue?
 
+...
+
 ##### b) Funciona correctamente con disciplina de señalización Signal and Wait?
+
+...
 
 ### 6. Modifique la solución anterior para el caso de no contar con una instrucción wait con prioridad.
 
+...
+
 ### 7. Modifique utilizando monitores las soluciones de Lectores-Escritores de modo de no permitir más de 10 lectores simultáneos en la BD, y además que no se admita el ingreso a más lectores cuando hay escritores esperando.
+
+...
 
 ### 8. Resuelva con monitores el siguiente problema. Tres clases de procesos comparten el acceso a una lista enlazada: searchers, inserters y deleters. Los searchers sólo examinan la lista, y por lo tanto pueden ejecutar concurrentemente unos con otros. Los inserters agregan nuevos ítems al final de la lista; las inserciones deben ser mutuamente exclusivas para evitar insertar dos ítems casi al mismo tiempo. Sin embargo, un insert puede hacerse en paralelo con uno o más searches. Por último, los deleters remueven ítems de cualquier lugar de la lista. A lo sumo un deleter puede acceder la lista a la vez, y el borrado también debe ser mutuamente exclusivo con searches e inserciones.
 
+...
+
 ### 9. El problema del “Puente de una sola vía” (One-Lane Bridge): autos que provienen del Norte y del Sur llegan a un puente con una sola vía. Los autos en la misma dirección pueden atravesar el puente al mismo tiempo, pero no puede haber autos en distintas direcciones sobre el puente.
+
+...
 
 ##### a) Desarrolle una solución al problema, modelizando los autos como procesos y sincronizando con un monitor (no es necesario que la solución sea fair ni dar preferencia a ningún tipo de auto).
 
+...
+
 ##### b) Modifique la solución para asegurar fairness (Pista: los autos podrían obtener turnos)
+
+...
 
 ### 10. Indicar las características generales de Pthreads.
 
+...
+
 ### 11. Explicar cómo se maneja la sincronización por exclusión mutua y por condición en Pthreads. Indicar la relación entre ambas. Explicar cómo se pueden simular los monitores en Pthreads.
+
+...
