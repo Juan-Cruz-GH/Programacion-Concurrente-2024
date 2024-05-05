@@ -206,39 +206,106 @@ Puede terminar o no, si se da el caso de que siempre se ejecuta el bloque entero
 
 ### 1. ¿Qué propiedades deben garantizarse en la administración de una sección crítica en procesos concurrentes? ¿Cuáles de ellas son propiedades de seguridad y cuáles de vida? En el caso de las propiedades de seguridad, ¿cuál es en cada caso el estado “malo” que se debe evitar?
 
+Se deben garantizar:
+
+1. A lo sumo un proceso está en su sección crítica.
+2. Si 2 o más procesos intentan entrar a la sección crítica y ésta está libre, si o si uno de ellos entra.
+3. Si un proceso quiere entrar a la sección crítica y ésta está libre, debe entrar inmediatamente.
+4. Todos los procesos eventualmente acceden a la sección crítica.
+
+La propiedad 1 es de **seguridad**, ya que que si no se cumple implica que probablemente el resultado sea erróneo.
+La propiedad 2 es de **vida**, ya que si no se cumple se produce deadlock y el programa podría no terminar.
+La propiedad 3 es de **seguridad**, ya que si no se cumple se estarían generando demoras innecesarias.
+La propiedad 4 es de **vida**, ya que si no se cumple habría inanición.
+
 ### 2. Resuelva el problema de acceso a sección crítica para N procesos usando un proceso coordinador. En este caso, cuando un proceso SC[i] quiere entrar a su sección crítica le avisa al coordinador, y espera a que éste le otorgue permiso. Al terminar de ejecutar su sección crítica, el proceso SC[i] le avisa al coordinador. Desarrolle una solución de grano fino usando únicamente variables compartidas (ni semáforos ni monitores).
+
+```cs
+int siguiente = 0
+bool llegue = false
+bool fin = false
+process SC [id: 0..N-1] {
+    while (id != siguiente) skip
+    llegue = true
+    // Sección crítica
+    fin = true
+}
+process Coordinador {
+    for i=0 to N-1 {
+        siguiente = i
+        while (not llegue) skip
+        llegue = false
+        while (not fin) skip
+        fin = false
+    }
+}
+```
 
 ### 3. ¿Qué mejoras introducen los algoritmos Tie-breaker, Ticket o Bakery en relación a las soluciones de tipo spin-locks?
 
+Los algoritmos Tie-breaker, Ticket y Bakery, a diferencia de los spin-locks, ofrecen **fairness** es decir una forma de evitar la inanición de los procesos que quieren acceder a la sección crítica.
+
 ### 4. Analice las soluciones para las barreras de sincronización desde el punto de vista de la complejidad de la programación y de la performance.
+
+La barreras tipo contador compartido y flags con coordinador tienen complejidad O(N).
+La barreras tipo árbol y simétrica tienen complejidad O(log(N)).
 
 ### 5. Explique gráficamente cómo funciona una butterfly barrier para 8 procesos usando variables compartidas.
 
 ![Butterfly Barrier](https://i.imgur.com/gtnHr4A.jpeg)
 
+2 procesos se sincronizan entre sí, luego estos 2 con otros 2, luego esos 4 con otros 4, luego esos 8 con otros 8, etc.
+
 ### 6.
 
 ##### a) Explique la semántica de un semáforo
 
+Un semáforo es una estructura abstracta que posee como único atributo interno un entero mayor o igual a 0, y que solo acepta 2 operaciones, P y V.
+
+P duerme al proceso si el valor entero es igual a 0, y si no, lo decrementa en 1.
+V incrementa el valor entero en 1.
+
 ##### b) Indique los posibles valores finales de x en el siguiente programa (justifique claramente su respuesta):
 
 ```cs
-int x = 4; sem s1 = 1, s2 = 0;
-co
-   P(s1); x = x * x ; V(s1);
-
-   P(s2); P(s1); x = x * 3; V(s1);
-
-   P(s1); x = x - 2; V(s2); V(s1);
-oc
+int x = 4
+sem s1 = 1
+sem s2 = 0
+process A {
+    P(s1)
+    x = x * x
+    V(s1)
+}
+process B {
+    P(s2)
+    P(s1)
+    x = x * 3
+    V(s1)
+}
+process C {
+    P(s1)
+    x = x - 2
+    V(s2)
+    V(s1)
+}
 ```
+
+1. Se ejecuta A primero. Entra a la sección crítica, x = 16. Se ejecuta C. x = 14. Se despierta B. x = 42.
+2. Se ejecuta C primero. Entra a la sección crítica, x = 2. Despierta a B, B le gana a A, x = 6. Se ejecuta A, x = 36.
+3. Se ejecuta C primero. Entra a la sección crítica, x = 2. Despierta a B, A le gana a B, x = 4. Se ejecuta B, x = 12.
 
 ### 7. Desarrolle utilizando semáforos una solución centralizada al problema de los filósofos, con un administrador único de los tenedores, y posiciones libres para los filósofos (es decir, cada filósofo puede comer en cualquier posición siempre que tenga los dos tenedores correspondientes).
 
+...
+
 ### 8. Describa la técnica de Passing the Baton. ¿Cuál es su utilidad en la resolución de problemas mediante semáforos?
 
-### 9. Modifique las soluciones de Lectores-Escritores con semáforos de modo de no permitir más de 10 lectores simultáneos en la BD y además que no se admita el ingreso a más lectores cuando hay escritores esperando.
+La técnica Passing the Baton se utiliza para respetar cierto orden al despertar a procesos dormidos.
+Cuando un proceso está dentro de la sección crítica mantiene el "baton".
+Cuando ese proceso sale de la SC le pasa el baton al siguiente proceso según un cierto orden (de llegada, de id, etc). Si no hay ningun proceso en la cola, entonces el baton lo toma el primer nuevo proceso que llegue.
 
+### 9. Modifique las soluciones de Lectores-Escritores con semáforos de modo de no permitir más de 10 lectores simultáneos en la BD y además que no se admita el ingreso a más lectores cuando hay escritores esperando.
+...
 ---
 
 <center>
