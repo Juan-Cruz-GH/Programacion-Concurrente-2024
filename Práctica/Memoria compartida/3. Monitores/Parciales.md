@@ -205,7 +205,7 @@ process Vehiculo [id: 0..74] {
 }
 ```
 
-## - ❓
+## - ✅
 
 Una boletería vende E entradas para un partido, y hay P personas (P>E) que quieren comprar. Se las atiende por orden de llegada y la función vender() simula la venta. La boletería debe informarle a la persona que no hay más entradas disponibles o devolverle el número de entrada si pudo hacer la compra.
 
@@ -247,7 +247,7 @@ Monitor Fila {
 
 process Persona[id: 0..P-1]{
     Fila.hacerFila()    // Tener 2 Monitores permite que se puedan encolar mientras una persona esta siendo atendida
-    numero = Boleteria.comprar()
+    Boleteria.comprar(numero)
 	Fila.salir()
 }
 ```
@@ -287,7 +287,7 @@ process Auto [id: 0..N-1] {
 }
 ```
 
-## - ❓
+## - ✅
 
 En la guardia de traumatología de un hospital trabajan 5 médicos y una enfermera. A la guardia acuden P Pacientes que al llegar se dirigen a la enfermera para que le indique a que médico se debe dirigir y cuál es su gravedad (entero entre 1 y 10). Cuando tiene estos datos se dirige al médico correspondiente y espera hasta que lo termine de atender para retirarse. Cada médico atiende a sus pacientes en orden de acuerdo a la gravedad de cada uno.
 **Nota: maximizar la concurrencia.**
@@ -340,7 +340,7 @@ process Paciente[id: 0..P-1] {
 }
 ```
 
-## - ❓
+## - ✅
 
 Un equipo de videoconferencia puede ser usado por una persona a la vez. Hay P personas que utilizan este equipo (una unica vez cada uno) para su trabajo, de acuerdo a su prioridad. La prioridad de cada persona está dada por un numero entero positivo. Ademas existe un administrador que cada 3hs incrementa en 1 la prioridad de todas las personas que están esperando usar el equipo.
 **Nota: maximizar la concurrencia.**
@@ -350,7 +350,6 @@ Monitor EquipoVideo {
     bool libre = true
     int esperando = 0
     cond espera[N]
-    cond esperarPersonas
     ColaOrdenada personas(int, int) // id y prioridad
 
     procedure pedir(IN int id, IN int prioridad) {
@@ -359,7 +358,6 @@ Monitor EquipoVideo {
         else {
             esperando++
             personas.push(id, prioridad) // inserta ordenado ascendientemente por prioridad
-            signal(esperarPersonas)
             wait(espera[id])
         }
     }
@@ -373,10 +371,9 @@ Monitor EquipoVideo {
         }
     }
     procedure incrementar() {
-        if personas.empty()
-            wait(esperarPersonas)
-        for persona in personas
-            persona.prioridad++
+        if personas.NotEmpty()
+            for persona in personas
+                persona.prioridad++
     }
 }
 

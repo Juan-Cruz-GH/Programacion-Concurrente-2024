@@ -285,7 +285,7 @@ process Mozo [id: 0..M-1] {
 }
 ```
 
-## - ❓
+## - ✅
 
 Existen 15 sensores de temperatura y 2 módulos centrales de procesamiento. Un sensor mide la temperatura cada cierto tiempo (función medir()), la envía al módulo central para que le indique qué acción debe hacer (un número del 1 al 10) (función determinar() para el módulo central) y la hace (función realizar()). Los módulos atienden las mediciones por orden de llegada.
 
@@ -322,7 +322,7 @@ process Central [id: 0..1] {
 }
 ```
 
-## - ❓
+## - ✅
 
 Simular un exámen técnico para concursos Nodocentes en la Facultad, en el mismo participan 100 personas distribuidas en 4 concursos con un coordinador en cada una de ellos. Cada persona sabe en qué concurso participa. El coordinador de cada concurso espera hasta que lleguen las 25 personas correspondientes al mismo, les entrega el exámen a resolver (el mismo para todos los de ese concurso) y luego corrige los exámenes de esas 25 personas de acuerdo al orden en que van entregando. Cada persona al llegar debe esperar a que su coordinador (el de su concurso) le dé el exámen, lo resuelve, lo entrega para que su coordinador lo evalúe y espera hasta que le deje la nota para luego retirarse.
 **Nota: maximizar la concurrencia; sólo usar procesos que representen a las personas y coordinadores; todos los procesos deben terminar.**
@@ -359,46 +359,50 @@ process Coordinador [id: 0..3] {
     for i=0 to 24
         P(esperarIntegrantes[id])   // Espera a los 25 integrantes de su grupo
     examenes[id] = EntregarExamen() // Pone el examen de su grupo
-    V(esperarExamen[id])    // Avisa a su grupo que ya está el exámen
-    P(examenTerminado[id])  // Espera que haya examenes terminados
-    P(mutexExamen[id])
-    examen, persona = colas[id].pop()   // Obtiene el exámen terminado por orden de llegada
-    V(mutexExamen[id])
-    notas[persona] = Corregir(examen)
-    V(esperarNota[persona]) // Le avisa a la persona que ya está su exámen
+    for i=0 to 24
+        V(esperarExamen[id])    // Avisa a su grupo que ya está el exámen
+
+    for i=0 to 24 {
+        P(examenTerminado[id])  // Espera que haya examenes terminados
+        P(mutexExamen[id])
+        examen, persona = colas[id].pop()   // Obtiene el exámen terminado por orden de llegada
+        V(mutexExamen[id])
+        notas[persona] = Corregir(examen)
+        V(esperarNota[persona]) // Le avisa a la persona que ya está su exámen
+    }
 }
 ```
 
-## - ❓
+## - ✅
 
 Un banco decide entregar promociones a sus clientes por medio de su agente de prensa, el cual lo hace de la siguiente manera: el agente debe entregar 50 premios entre los 1000 clientes, para esto, obtiene al azar un número de cliente y le entrega el premio, una vez que este lo toma continúa con la entrega.
 **Notas: Cuando los 50 premios han sido entregados el agente y los clientes terminan su ejecución; No se puede utilizar una estructura de tipo arreglo para almacenar los premios de los clientes.**
 
 ```cs
-Cola premiosEntregados(50)(Premio, int)
 sem mutex = 1
-sem esperarPremios = 0
+sem esperarPremios[1000] = ([1000] 0)
+sem tomoPremio = 0
+Premio premioActual
 
 process Cliente [id: 0..999] {
-    Premio premio
-    int idCliente
-    P(esperarPremios)
-    P(mutex)
-    premio, idCliente = premiosEntregados.pop()
-    if idCliente != id
-        premiosEntregados.push(p, idC)
-    V(mutex)
+    P(esperarPremios[id])
+    if premio != null {
+        Premio p = premioActual
+        V(tomoPremio)
+    }
 }
 
 process Banco {
     Premio premios[50]
     for i=0 to 49 {
         int numeroClienteAzar = GetNumero() // Obtiene al azar un número cliente
-        P(mutex)
-        premiosEntregados.push(premios[i], numeroClienteAzar)
-        V(mutex)
-        V(esperarPremios)
+        premioActual = premios[i]
+        V(esperarPremios[numeroClienteAzar])
+        P(tomoPremio)
     }
+    premioActual = null
+    for i=0 to 999
+        V(esperarPremios[i])
 }
 ```
 
