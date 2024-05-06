@@ -343,7 +343,51 @@ Un equipo de videoconferencia puede ser usado por una persona a la vez. Hay P pe
 **Nota: maximizar la concurrencia.**
 
 ```cs
-??
+Monitor EquipoVideo {
+    bool libre = true
+    int esperando = 0
+    cond espera[N]
+    cond esperarPersonas
+    ColaOrdenada personas(int, int) // id y prioridad
+
+    procedure pedir(IN int id, IN int prioridad) {
+        if libre
+            libre = false
+        else {
+            esperando++
+            personas.push(id, prioridad) // inserta ordenado ascendientemente por prioridad
+            signal(esperarPersonas)
+            wait(espera[id])
+        }
+    }
+    procedure salir() {
+        if esperando == 0
+            libre = true
+        else {
+            esperando--
+            int siguiente = personas.pop().id
+            signal(espera[siguiente])
+        }
+    }
+    procedure incrementar() {
+        if personas.empty()
+            wait(esperarPersonas)
+        for persona in personas
+            persona.prioridad++
+    }
+}
+process Persona[id: 0..P-1] {
+    int prioridad = GetPrioridad()
+    EquipoVideo.pedir(id, prioridad)
+    // Usa el equipo de video
+    EquipoVideo.salir()
+}
+process Administrador {
+    while true {
+        delay(3 * 60 * 60)
+        EquipoVideo.incrementar()
+    }
+}
 ```
 
 ## - ✅
