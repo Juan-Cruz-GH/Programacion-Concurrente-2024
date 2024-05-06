@@ -394,7 +394,67 @@ En una empresa hay UN Coordinador y 30 Empleados que formarán 3 grupos de 10 em
 **Nota: maximizar la concurrencia; suponga que existe una función Generar() que simula la elaboración de una unidad de un producto.**
 
 ```cs
-??
+Cola empleados(30)
+sem llegue = 0
+sem mutex = 1
+sem miNumeroGrupo[30] = ([30] 0)
+int miGrupo[30] = ([30] 0)
+
+sem mutexGrupo[3] = ([3] 1)
+int cantUnidadesGrupo[3] = ([3] 0)
+int unidadesQueHice[30] = ([30] 0)
+
+sem mutexBarreras[3] = ([3] 1)
+int cantTerminaron[3] = ([3] 0)
+sem barreras[3] = ([3] 0)
+
+sem avisarCoordinador = 0
+process Empleados[id: 0..29] {
+    P(mutex)
+    empleados.push(id)
+    V(mutex)
+    V(llegue)
+    P(miNumeroGrupo[id])
+    int grupo = miGrupo[id]
+    P(mutexGrupo[grupo])
+    while cantUnidadesGrupo[grupo] < 345 {
+        cantUnidadesGrupo[grupo]++
+        V(mutexGrupo[grupo])
+        unidadesQueHice[id]++
+        Generar()
+        P(mutexGrupo[grupo])
+    }
+    V(mutexGrupo[grupo])
+
+    P(mutexBarreras[grupo])
+    cantTerminaron[grupo]++
+    if cantTerminaron[grupo] == 10
+        for i=0 to 9
+            V(barreras[grupo])
+    V(mutexBarreras[grupo])
+    P(barreras[grupo])
+    V(avisarCoordinador)
+}
+process Coordinador {
+    int idActual
+    int cantLlegaron = 0
+    int grupoActual = 1
+    for i=0 to 29 {
+        P(llegue)
+        P(mutex)
+        idActual = empleados.pop()
+        V(mutex)
+        cantLlegaron++
+        if cantLlegaron == 10
+            cantLlegaron = 0
+            grupoActual++
+        miGrupo[idActual] = grupoActual
+        V(miNumeroGrupo[idActual])
+    }
+    for i=0 to 29
+        P(avisarCoordinador)
+    print(unidadesQueHice.max()) // Asumo que la función devuelve más de un valor si hay más de un máximo
+}
 ```
 
 ## - ❓
