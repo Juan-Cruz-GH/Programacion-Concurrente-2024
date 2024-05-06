@@ -9,11 +9,6 @@ En una montaña hay 30 escaladores que en una parte de la subida deben utilizar 
 **Nota: sólo se pueden utilizar procesos que representen a los escaladores; cada escalador usa sólo una vez el paso**
 
 ```cs
-process Escalador [id: 0..29] {
-    Paso.pasar()
-    // Usa el paso
-    Paso.salir()
-}
 Monitor Paso {
     cond espera
     bool libre = true
@@ -36,21 +31,20 @@ Monitor Paso {
         }
     }
 }
+
+process Escalador [id: 0..29] {
+    Paso.pasar()
+    // Usa el paso
+    Paso.salir()
+}
 ```
 
-## Ejercicio 2) - 4 de diciembre, 2023 ❓
+## Ejercicio 2) - 4 de diciembre, 2023 ✅
 
 En una empresa trabajan 20 vendedores ambulantes que forman 5 equipos de 4 personas cada uno (cada vendedor conoce previamente a que equipo pertenece). Cada equipo se encarga de vender un producto diferente. Las personas de un equipo se deben juntar antes de comenzar a trabajar. Luego cada integrante del equipo trabaja independientemente del resto vendiendo ejemplares del producto correspondiente. Al terminar cada integrante del grupo debe conocer la cantidad de ejemplares vendidos por el grupo.
 **Nota: maximizar la concurrencia.**
 
 ```cs
-process Vendedor [id: 1..20] {
-    int miEquipo = Equipo()
-    int total, cantVendida = 0
-    Coordinadores[miEquipo].inicio()
-    cantVendida = Vender()
-    Coordinadores[miEquipo].fin(cantVendida, total)
-}
 Monitor Coordinadores[id: 1..5] {
     cond vendedores
     int cantLlegar, cantSalir, totalVendido = 0
@@ -61,14 +55,23 @@ Monitor Coordinadores[id: 1..5] {
         else
             wait(vendedores)
     }
-    procedure fin(IN int cantVendio, OUT int totalVendido) {
+    procedure fin(IN int cantVendio, OUT int total) {
         cantSalir++
-        totalVendido += cantVendio  // No deberíamos tener 5 variables total, una por cada grupo?
+        totalVendido += cantVendio
         if cantSalir == 4
             signal_all(vendedores)
         else
             wait(vendedores)
+        total = totalVendido
     }
+}
+
+process Vendedor [id: 1..20] {
+    int total, cantVendida = 0
+    int miEquipo = Equipo()
+    Coordinadores[miEquipo].inicio()
+    cantVendida = Vender()
+    Coordinadores[miEquipo].fin(cantVendida, total)
 }
 ```
 
@@ -84,12 +87,12 @@ Monitor Mesa {
     ColaOrdenada personas(int, int)
 
     procedure llegada(IN int id, IN int prioridad) {
-        personas.push(prioridad, id) // Inserta ordenado por prioridad de forma ascendiente
+        personas.push(id, prioridad) // Inserta ordenado por prioridad de forma ascendiente
         signal(autoridad)   // Avisarle a la autoridad que la persona quiere pasar a votar
         wait(miTurno[id])
     }
     procedure siguiente() {
-        if empty(personas)
+        if personas.empty()
             wait(autoridad)
         int id = personas.pop().id
         signal(miTurno[id])
@@ -132,7 +135,6 @@ Monitor SubsistemaES {
             procesos.push(id, prioridad) // Inserta ordenado por prioridad
             wait(colas[id])
         }
-    }
     }
     procedure liberar() {
         if esperando == 0
@@ -242,6 +244,7 @@ Monitor Fila {
         }
     }
 }
+
 process Persona[id: 0..P-1]{
     Fila.hacerFila()    // Tener 2 Monitores permite que se puedan encolar mientras una persona esta siendo atendida
     numero = Boleteria.comprar()
@@ -376,12 +379,14 @@ Monitor EquipoVideo {
             persona.prioridad++
     }
 }
+
 process Persona[id: 0..P-1] {
     int prioridad = GetPrioridad()
     EquipoVideo.pedir(id, prioridad)
     // Usa el equipo de video
     EquipoVideo.salir()
 }
+
 process Administrador {
     while true {
         delay(3 * 60 * 60)

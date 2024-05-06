@@ -10,15 +10,16 @@ con capacidad para 100 latas por parte de U usuarios. Además existe un reposito
 **Nota: maximizar la concurrencia; mientras se reponen las latas se debe permitir que otros usuarios puedan agregarse a la fila.**
 
 ```cs
-Cola maquina(Gaseosa)(100)
-Cola usuarios(Usuario)
-bool libre = true
 sem mutexMaquina = 1
-sem seVacio = 0
-sem maquinaRecargada = 0
+bool libre = true
+Cola usuarios(Usuario)
 sem esperando[U] = ([U] 0)
 
-process Usuario [id: 0..U-1] {
+Cola maquina(Gaseosa)(100)
+sem seVacio = 0
+sem maquinaRecargada = 0
+
+process Usuario[id: 0..U-1] {
     P(mutexMaquina)
     if libre {
         libre = false
@@ -41,6 +42,7 @@ process Usuario [id: 0..U-1] {
         V(esperando[usuarios.pop])
     V(mutexMaquina)
 }
+
 process Repositor {
     Cola maquinaRepuesta(Gaseosa)(100)
     while true {
@@ -57,14 +59,17 @@ Un sistema debe validar un conjunto de 10000 transacciones que se encuentran dis
 **Nota: maximizar la concurrencia.**
 
 ```cs
+sem mutexCola = 1
 Cola transacciones(10000)(Transaccion)
+
 int resultados[10] = {[10] 0}
 sem mutexRes[10] = 1
-sem mutexCola = 1
+
 sem mutexFin = 1
-sem barrera = 0
 int cantTerminaron = 0
-process Worker [id: 1..7] {
+sem barrera = 0
+
+process Worker[id: 1..7] {
     Transaccion t
     int res
     P(mutexCola)
@@ -86,8 +91,8 @@ process Worker [id: 1..7] {
     if cantTerminaron == 7 {    // el último proceso
         for i=0 to 9
             print(resultados[i])
-        for i=1 to 6
-            V(barrera)   // despertar a los otros 6
+        for i=1 to 7
+            V(barrera)   // despertar a los demás
         V(mutexFin)
     }
     V(mutexFin)
@@ -102,9 +107,9 @@ En una estación de trenes, asisten P personas que deben realizar una carga de s
 
 ```cs
 sem mutex = 1
-sem esperar[P] = {[P] 0}
-Cola personas
 bool libre = true
+Cola personas
+sem esperar[P] = {[P] 0}
 
 process Persona [id: 0..P-1] {
     P(mutex)
@@ -133,39 +138,40 @@ Resuelva el mismo problema anterior pero ahora considerando que hay T terminales
 **Nota: la función UsarTerminal(t) le permite cargar la SUBE en la terminal t**
 
 ```cs
-sem s = 1
-sem s_cola = 1
-sem esperar[P] = {[P] 0}
+sem mutex = 1
 int libres = T
 Cola personas
+sem esperar[P] = {[P] 0}
+
+sem mutexTerminales = 1
 Cola terminales
 
 process Persona [id: 0..P-1] {
-    P(s)
-    if libres == 0 {
-        personas.push(id)
-        V(s)
-        P(esperar[id])
+    P(mutex)
+    if libres != 0 {
+        libres--
+        V(mutex)
     }
     else {
-        libres--
-        V(s)
+        personas.push(id)
+        V(mutex)
+        P(esperar[id])
     }
-    P(s_cola)
+    P(mutexTerminales)
     t = terminales.pop()
-    V(s_cola)
+    V(mutexTerminales)
 
     UsarTerminal(t)
 
-    P(s_cola)
+    P(mutexTerminales)
     terminales.push(t)
-    V(s_cola)
-    P(s)
-    if personas.isNotEmpty()
-        V(esperar[personas.pop()])
-    else
+    V(mutexTerminales)
+    P(mutex)
+    if personas.isEmpty()
         libres++
-    V(s)
+    else
+        V(esperar[personas.pop()])
+    V(mutex)
 }
 ```
 
@@ -206,6 +212,7 @@ Process Vehículo [id: 1..150] {
     cant_estaciones[mi_estacion]-- // decrementa contador para mantener valor actualizado
     v(cont_estaciones)
 }
+
 Process Entrada {
     int id_min_estacion, id
     while true {
@@ -223,6 +230,7 @@ Process Entrada {
         V(espera_estacion[id])
     }
 }
+
 Process Estacion [id: 1..7] {
     int id
     while true {
@@ -262,6 +270,7 @@ process Cocinero [id: 0..C-1] {
 		V(preparado)    // Avisa que hay un plato nuevo en la bandeja
 	}
 }
+
 process Mozo [id: 0..M-1] {
     Plato plato
     while true {
@@ -282,10 +291,11 @@ Existen 15 sensores de temperatura y 2 módulos centrales de procesamiento. Un s
 
 ```cs
 sem mutex = 1
+cola temps(int)
 sem tempEnviada = 0
 sem esperarAccion[15] = ([15] 0)
-cola temps(int)
 int miAccion[15]
+
 process Sensor [id: 0..14] {
 	while true {
 		int temperatura = medir()
@@ -326,6 +336,7 @@ sem esperarExamen[4] = ([4] 0)
 sem esperarNota[100] = ([100] 0)
 sem mutexExamen[4] = ([4] 1)
 sem examenTerminado[4] = ([4] 0)
+
 process Persona [id: 0..99] {
     int miConcurso = GetConcurso() // Valor entre 0 y 3
     V(esperarIntegrantes[miConcurso])   // Avisa a su Coordinador que llegó
@@ -341,6 +352,7 @@ process Persona [id: 0..99] {
     P(esperarNota[id])  // Espera que su Coordinador lo corriga
     string miNota = notas[id]   // Obtiene su nota
 }
+
 process Coordinador [id: 0..3] {
     string examen
     int persona
@@ -366,6 +378,7 @@ Un banco decide entregar promociones a sus clientes por medio de su agente de pr
 Cola premiosEntregados(50)(Premio, int)
 sem mutex = 1
 sem esperarPremios = 0
+
 process Cliente [id: 0..999] {
     Premio premio
     int idCliente
@@ -376,6 +389,7 @@ process Cliente [id: 0..999] {
         premiosEntregados.push(p, idC)
     V(mutex)
 }
+
 process Banco {
     Premio premios[50]
     for i=0 to 49 {
@@ -409,6 +423,7 @@ int cantTerminaron[3] = ([3] 0)
 sem barreras[3] = ([3] 0)
 
 sem avisarCoordinador = 0
+
 process Empleados[id: 0..29] {
     P(mutex)
     empleados.push(id)
@@ -435,6 +450,7 @@ process Empleados[id: 0..29] {
     P(barreras[grupo])
     V(avisarCoordinador)
 }
+
 process Coordinador {
     int idActual
     int cantLlegaron = 0
