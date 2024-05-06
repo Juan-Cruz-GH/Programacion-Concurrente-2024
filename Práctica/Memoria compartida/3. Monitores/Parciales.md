@@ -290,7 +290,51 @@ En la guardia de traumatología de un hospital trabajan 5 médicos y una enferme
 **Nota: maximizar la concurrencia.**
 
 ```cs
-??
+Monitor Medicos[id: 0..4] {
+    cond espera[N]
+    ColaOrdenada pacientes(int, int) // idPaciente y gravedd
+    bool libre = true
+    int esperando = 0
+
+    procedure pasar(IN int idPaciente, IN int gravedad) {
+        if libre
+            libre = false
+        else {
+            esperando++
+            pacientes.push(idPaciente, gravedad) // inserta ordenado descendientemente por gravedad
+            wait(espera[idPaciente])
+        }
+    }
+    procedure salir() {
+        if esperando == 0
+            libre = true
+        else {
+            esperando--
+            int siguiente = pacientes.pop().idPaciente
+            signal(espera[siguiente])
+        }
+    }
+}
+Monitor Enfermera {
+    int medicos[5] = (0 1 2 3 4)
+    int i = 0
+
+    procedure miMedico(OUT int medico, OUT int gravedad) {
+        medico = medicos[i]
+        i++
+        if i == 5
+            i = 0
+        gravedad = EvaluarGravedad()
+    }
+}
+
+process Paciente[id: 0..P-1] {
+    int medico, gravedad
+    Enfermera.miMedico(medico, gravedad)
+    Medicos[medico].pasar(id, gravedad)
+    // el médico lo atiende
+    Medicos[medico].salir()
+}
 ```
 
 ## - ❓
