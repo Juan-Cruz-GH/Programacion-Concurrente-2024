@@ -209,8 +209,8 @@ Una boletería vende E entradas para un partido, y hay P personas (P>E) que quie
 
 ```cs
 Monitor Boleteria {
-	cantidadEntradas = E
-	procedure Comprar(OUT int numero) {
+	int cantidadEntradas = E
+	procedure comprar(OUT int numero) {
 		if (cantidadEntradas == 0) {
 			numero = -1
 			print("No hay mas entradas")
@@ -222,10 +222,10 @@ Monitor Boleteria {
 	}
 }
 Monitor Fila {
-    personasEsperando = 0
-    libre = true
+    int personasEsperando = 0
+    bool libre = true
     cond cola
-    procedure HacerFila() {
+    procedure hacerFila() {
         if libre
 			libre = false
 		else {
@@ -233,7 +233,7 @@ Monitor Fila {
 			wait(cola)
 		}
     }
-    procedure Salir() {
+    procedure salir() {
         if (personasEsperando == 0)
             libre = true
         else {
@@ -242,10 +242,10 @@ Monitor Fila {
         }
     }
 }
-process persona[id: 1..P]{
-    Fila.HacerFila()    // Tener 2 Monitores permite que se puedan encolar mientras una persona esta siendo atendida
-    numero = Boleteria.Comprar()
-	Fila.Salir()
+process Persona[id: 0..P-1]{
+    Fila.hacerFila()    // Tener 2 Monitores permite que se puedan encolar mientras una persona esta siendo atendida
+    numero = Boleteria.comprar()
+	Fila.salir()
 }
 ```
 
