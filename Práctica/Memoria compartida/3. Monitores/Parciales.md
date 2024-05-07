@@ -32,7 +32,7 @@ Monitor Paso {
     }
 }
 
-process Escalador [id: 0..29] {
+process Escalador[id: 0..29] {
     Paso.pasar()
     // Usa el paso
     Paso.salir()
@@ -66,7 +66,7 @@ Monitor Coordinadores[id: 1..5] {
     }
 }
 
-process Vendedor [id: 1..20] {
+process Vendedor[id: 1..20] {
     int total, cantVendida = 0
     int miEquipo = Equipo()
     Coordinadores[miEquipo].inicio()
@@ -103,7 +103,7 @@ Monitor Mesa {
     }
 }
 
-process Persona [id: 0..N-1] {
+process Persona[id: 0..N-1] {
     int prioridad = obtenerPrioridad()  // 1 = Normal | 0 = Anciano/Embarazada
     Mesa.llegada(id, prioridad) // solicitar acceso
     Votar()
@@ -124,7 +124,7 @@ En un sistema operativo se ejecutan 20 procesos que periódicamente realizan cie
 Monitor SubsistemaES {
     int esperando = 0
     bool libre = true
-    cond colas [N]
+    cond colas[N]
     ColaOrdenada procesos(int, int)
 
     procedure pedir(IN int id, IN int prioridad) {
@@ -147,7 +147,7 @@ Monitor SubsistemaES {
     }
 }
 
-process Proceso [id: 1..20] {
+process Proceso[id: 1..20] {
     int prioridad = obtenerPrioridad()
     while true {
         resultados = Procesar()
@@ -164,7 +164,7 @@ En una planta verificadora de vehículos existen 5 estaciones de verificación. 
 **Nota: maximizar la concurrencia.**
 
 ```cs
-Monitor Admin [id: 0..4] {
+Monitor Admin[id: 0..4] {
     cola vehiculos
     string comprobante
     cond esperaVehiculos, esperaEstacion, fin
@@ -188,7 +188,7 @@ Monitor Admin [id: 0..4] {
     }
 }
 
-process Estacion [id: 0..4] {
+process Estacion[id: 0..4] {
     string comprobante
     int idVehiculo
     while true {
@@ -198,7 +198,7 @@ process Estacion [id: 0..4] {
     }
 }
 
-process Vehiculo [id: 0..74] {
+process Vehiculo[id: 0..74] {
 	string comprobante
     int numeroEstacion = GetNumero()
     Admin[numeroEstacion].esperarAtencion(id, comprobante)
@@ -223,6 +223,7 @@ Monitor Boleteria {
 		}
 	}
 }
+
 Monitor Fila {
     int personasEsperando = 0
     bool libre = true
@@ -280,7 +281,7 @@ Monitor Puente {
 	}
 }
 
-process Auto [id: 0..N-1] {
+process Auto[id: 0..N-1] {
 	Puente.Entrar()
 	Pasar()
 	Puente.Salir()
@@ -318,6 +319,7 @@ Monitor Medicos[id: 0..4] {
         }
     }
 }
+
 Monitor Enfermera {
     int medicos[5] = (0 1 2 3 4)
     int i = 0

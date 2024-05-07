@@ -111,7 +111,7 @@ bool libre = true
 Cola personas
 sem esperar[P] = {[P] 0}
 
-process Persona [id: 0..P-1] {
+process Persona[id: 0..P-1] {
     P(mutex)
     if libre {
         libre = false
@@ -144,9 +144,10 @@ Cola personas
 sem esperar[P] = {[P] 0}
 
 sem mutexTerminales = 1
-Cola terminales
+Cola terminales(Terminal)
 
-process Persona [id: 0..P-1] {
+process Persona[id: 0..P-1] {
+    Terminal t
     P(mutex)
     if libres != 0 {
         libres--
@@ -181,73 +182,82 @@ En una planta verificadora de vehículos, existen 7 estaciones donde se dirigen 
 **Nota: maximizar la concurrencia.**
 
 ```cs
-int cant_estaciones [7] = {0} [7]
-int estaciones_asignadas [150]
-sem cont_estaciones = 1
-sem entrada = 1
-sem atencion_entrada = 0
-sem espera_estacion[150] {0} [150]
-sem atencion_verificacion[7] = {0} [7]
-sem s_estacion[7] = {1} [7]
-sem espera_resultado[150] = {0} [150]
-string resultado [150]
-Cola atencion_entrada, estacion [7]
+sem mutex = 1
+Cola llegada(int)
+sem llegue = 0
 
-Process Vehículo [id: 1..150] {
-    P(entrada)
-    push (atencion_entrada, i) // encola su ID para que lo atienda el coordinador
-    V(entrada)
+sem esperarEstacion[150] ([150] 0)
+int estacionesAsignadas[150] = ([150] 0)
 
-    V(sem atencion_entrada) // avisa para que lo atienda el coordinador
-    P(sem espera_estacion[i]) // espera estacion
-    mi_estacion = estaciones_asignadas [i] // copia
+sem mutexAutos = 1
+int autosPorEstacion[7] = ([7] 0)
 
-    P(s_estacion[mi_estacion])
-    push (estacion [mi_estacion], i) // encola su ID para que lo atiendan la estación
-    V(s_estacion[mi_estacion])
+sem mutexEstaciones[7] = ([7] 1)
+Cola estaciones(int)[7]
 
-    V(atencion_verificacion [mi_estacion]) // avisa para que lo atiendan en la estación
-    P(espera_resultado[i]) // espera resultado
-    P(cont_estaciones)
-    cant_estaciones[mi_estacion]-- // decrementa contador para mantener valor actualizado
-    v(cont_estaciones)
+sem esperarAuto[7] = ([7] 0)
+
+sem esperarResultado[150] = ([150] 0)
+string comprobantes[150]
+
+Process Vehículo[id: 1..150] {
+    string comprobante
+    P(mutex)
+    llegada.push(id)// encola su ID para que lo atienda el coordinador
+    V(mutex)
+    V(llegue) // avisa para que lo atienda el coordinador
+
+    P(esperarEstacion[id])
+    miEstacion = estacionesAsignadas[id]
+
+    P(mutexEstaciones[miEstacion])
+    estaciones[miEstacion].push(id) // encola su ID para que lo atiendan la estación
+    V(mutexEstaciones[miEstacion])
+
+    V(esperarAuto[miEstacion]) // avisa para que lo atiendan en la estación
+    P(esperarResultado[id]) // espera resultado
+    comprobante = comprobantes[id]
+
+    P(mutexAutos)
+    autosPorEstacion[miEstacion]-- // decrementa contador para mantener valor actualizado
+    v(mutexAutos)
 }
 
 Process Entrada {
-    int id_min_estacion, id
+    int estacionMin, id
     while true {
-        P(atencion_entrada) // espera pedido de atencion
-        P(entrada)
-        id = atencion_entrada.pop() // desencola pedido con exclusion mutua
-        V(entrada)
+        P(llegue) // espera pedido de atencion
+        P(mutex)
+        id = llegada.pop() // desencola pedido con exclusion mutua
+        V(mutex)
 
-        P(cont_estaciones)
-        id_min_estacion = min(cant_estaciones)  // posicion de la cantidad minima
-        cant_estaciones[id_min_estacion]++  // incrementa para actualizar celda
-        V(cont_estaciones)
+        P(mutexAutos)
+        estacionMin = min(autosPorEstacion)  // posicion de la cantidad minima
+        autosPorEstacion[estacionMin]++  // incrementa para actualizar celda
+        V(mutexAutos)
 
-        estaciones_asignadas[id] = id_min_estacion // asigna estacion
-        V(espera_estacion[id])
+        estacionesAsignadas[id] = estacionMin // asigna estacion
+        V(esperarEstacion[id])
     }
 }
 
-Process Estacion [id: 1..7] {
-    int id
+Process Estacion[id: 1..7] {
+    int idAuto
     while true {
-        P(atencion_verificacion[id]) // se bloquea a la espera de que haya vehiculos
+        P(esperarAuto[id]) // se bloquea a la espera de que haya vehiculos
 
-        P(s_estacion[id])
-        id = estacion[id].pop() // desencola vehiculo
-        V(s_estacion[id])
+        P(mutexEstaciones[id])
+        idAuto = estaciones[id].pop() // desencola vehiculo
+        V(mutexEstaciones[id])
 
-        resultado[id] = verificar(id)   // verificar
+        comprobantes[id] = verificar(idAuto)   // verificar
 
-        V(espera_resultado[id]) // le avisa que ya esta el resultado disponible
+        V(esperarResultado[id]) // le avisa que ya esta el resultado disponible
     }
 }
 ```
 
-## Ejercicio 1) - Primer recuperatorio 2022 ❓
+## Ejercicio 1) - Primer recuperatorio 2022 ✅
 
 En un restorán trabajan C cocineros y M mozos. De forma repetida, los cocineros preparan un plato y lo dejan listo en la bandeja de platos terminados, mientras que los mozos toman los platos de esta bandeja para repartirlos entre los comensales. Tanto los cocineros como los mozos trabajan de a un plato por vez. Modele el funcionamiento del restorán considerando que la bandeja de platos listos puede almacenar hasta P platos. No es necesario modelar a los comensales ni que los procesos terminen.
 
@@ -258,7 +268,7 @@ sem tamañoBandeja = P
 sem preparado = 0
 sem mutexC, mutexM = 1
 
-process Cocinero [id: 0..C-1] {
+process Cocinero[id: 0..C-1] {
     Plato plato
 	while true {
 		plato = Preparar()
@@ -271,7 +281,7 @@ process Cocinero [id: 0..C-1] {
 	}
 }
 
-process Mozo [id: 0..M-1] {
+process Mozo[id: 0..M-1] {
     Plato plato
     while true {
         P(preparado)    // Espera que haya plato en la bandeja
@@ -296,7 +306,7 @@ sem tempEnviada = 0
 sem esperarAccion[15] = ([15] 0)
 int miAccion[15]
 
-process Sensor [id: 0..14] {
+process Sensor[id: 0..14] {
 	while true {
 		int temperatura = medir()
 		P(mutex)
@@ -328,16 +338,19 @@ Simular un exámen técnico para concursos Nodocentes en la Facultad, en el mism
 **Nota: maximizar la concurrencia; sólo usar procesos que representen a las personas y coordinadores; todos los procesos deben terminar.**
 
 ```cs
-string examenes[4]
-string notas[100]
-Cola colas[4](string)
 sem esperarIntegrantes[25] = ([25] 0)
 sem esperarExamen[4] = ([4] 0)
-sem esperarNota[100] = ([100] 0)
+
+string examenes[4]
+
 sem mutexExamen[4] = ([4] 1)
+Cola colas[4](string)
 sem examenTerminado[4] = ([4] 0)
 
-process Persona [id: 0..99] {
+string notas[100]
+sem esperarNota[100] = ([100] 0)
+
+process Persona[id: 0..99] {
     int miConcurso = GetConcurso() // Valor entre 0 y 3
     V(esperarIntegrantes[miConcurso])   // Avisa a su Coordinador que llegó
     P(esperarExamen[miConcurso])    // Espera que su Coordinador ponga el exámen
@@ -379,14 +392,13 @@ Un banco decide entregar promociones a sus clientes por medio de su agente de pr
 **Notas: Cuando los 50 premios han sido entregados el agente y los clientes terminan su ejecución; No se puede utilizar una estructura de tipo arreglo para almacenar los premios de los clientes.**
 
 ```cs
-sem mutex = 1
 sem esperarPremios[1000] = ([1000] 0)
-sem tomoPremio = 0
 Premio premioActual
+sem tomoPremio = 0
 
-process Cliente [id: 0..999] {
+process Cliente[id: 0..999] {
     P(esperarPremios[id])
-    if premio != null {
+    if premioActual != null {
         Premio p = premioActual
         V(tomoPremio)
     }
@@ -406,7 +418,7 @@ process Banco {
 }
 ```
 
-## - ❓
+## - ✅
 
 En una empresa hay UN Coordinador y 30 Empleados que formarán 3 grupos de 10 empleados cada uno. Cada grupo trabaja en una sección diferente y debe realizar 345 unidades de un producto. Cada empleado al llegar se dirige al coordinador para que le indique el número de grupo al que pertenece y una vez que conoce este dato comienza a trabajar hasta que se han terminado de hacer las 345 unidades correspondientes al grupo (cada unidad es hecha por un único empleado). Al terminar de hacer las 345 unidades los 10 empleados del grupo se deben juntar para retirarse todos juntos. El coordinador debe atender a los empleados de acuerdo al orden de llegada para darle el número de grupo (a los 10 primeros que lleguen se le asigna el grupo 1, a los 10 del medio el 2, y a los 10 últimos el 3). Cuando todos los grupos terminaron de trabajar el coordinador debe informar (imprimir en pantalla) el empleado que más unidades ha realizado (si hubiese más de uno con la misma cantidad máxima debe informarlos a todos ellos).
 **Nota: maximizar la concurrencia; suponga que existe una función Generar() que simula la elaboración de una unidad de un producto.**
@@ -477,45 +489,42 @@ process Coordinador {
 }
 ```
 
-## - ❓
+## - ✅
 
 En una fábrica de muebles trabajan 50 empleados. A llegar, los empleados forman 10 grupos de 5 personas cada uno, de acuerdo al orden de llegada (los 5 primeros en llegar forman el primer grupo, los 5 siguientes el segundo grupo, y así sucesivamente). Cuando un grupo se ha terminado de formar, todos sus integrantes se ponen a trabajar. Cada grupo debe armar M muebles (cada mueble es armado por un solo empleado); mientras haya muebles por armar en el grupo los empleados los irán resolviendo (cada mueble es armado por un solo empleado).
 **Nota: Cada empleado puede tardar distinto tiempo en armar un mueble. Sólo se pueden usar los procesos “Empleado”, y todos deben terminar su ejecución. Maximizar la concurrencia.**
 
 ```cs
+sem mutex = 1
 int empleados = 0
 int grupos = 0
-int muebles[10] = {[10] 0}
-sem s_reunion[10] = {[10] 0}
-sem s_muebles[10] = {[10] 1}
-sem s_llegada = 1
+sem esperarGrupo[10] = ([10] 0)
 
-process Empleado [id: 0..49] {
-    int grupo
-    P(s_llegada)
-    grupo = grupos
+sem mutexGrupo[10] = ([10] 1)
+int mueblesPorGrupo[10] = ([10] 0)
+
+process Empleado[id: 0..49] {
+    P(mutex)
     empleados++
-    if empleados < 5 {
-        V(s_llegada)
-        P(s_reunion[grupo])
-    }
-    else {
-        for i = 1 to 4 do
-            V(s_reunion[grupo])
+    grupo = grupos
+    if empleados == 5 {
+        for i=1 to 4
+            V(esperarGrupo[grupo])
         empleados = 0
         grupo++
-        V(s_llegada)
+        V(mutex)
     }
-    // Trabajar
-    P(s_muebles[grupo])
-    while (muebles[grupo] < M) {
-        muebles[grupo]++
-        V(s_muebles[grupo])
-        // Armar mueble
-        sleep(rand())
-        P(s_muebles[grupo])
+    else {
+        V(mutex)
+        P(esperarGrupo[grupo])
     }
-    V(s_muebles[grupo])
+    P(mutexGrupo[grupo])
+    while (mueblesPorGrupo[grupo] < M) {
+        mueblesPorGrupo[grupo]++
+        V(mutexGrupo[grupo])
+        ArmarMueble()
+        P(mutexGrupo[grupo])
+    }
+    V(mutexGrupo[grupo])
 }
-
 ```
