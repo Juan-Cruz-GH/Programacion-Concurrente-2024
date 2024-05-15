@@ -1470,6 +1470,45 @@ El do es igual excepto que se sigue iterando hasta que **todas las condiciones s
 
 </center>
 
+## RPC y Rendezvous
+
+#### Conceptos básicos
+
+-   La comunicación es **bidireccional**.
+-   RPC es parecido a monitores.
+-   En Rendezvous tenemos un montón de procesos que cada tanto deben interactuar.
+
+## RPC (Remote Procedure Call)
+
+-   Los programas se componen de módulos que pueden estar distribuidos en distintas máquinas o no. Cada módulo puede tener muchos procesos y procedures.
+-   Los procesos de un módulo pueden compartir variables y llamar a procedures de ese módulo.
+-   Un proceso en un módulo puede comunicarse con procesos de otro módulo sólo invocando procedimientos exportados por éste.
+
+#### Sincronización en módulos
+
+...
+
+## Rendezvous
+
+#### Conceptos generales
+
+-   Combina comunicación y sincronización.
+-   Un proceso cliente invoca una operación mediante un call, pero esta operación es servida por un proceso existente en lugar de por uno nuevo.
+-   Un proceso servidor usa una sentencia de entry para esperar por un call.
+-   Las operaciones se atienden de a una por vez.
+    ...
+
+## ADA - Lenguaje con Rendezvous
+
+#### Conceptos generales
+
+-   Tenemos un único programa llamado Procedure.
+-   Un programa ADA tiene tareas (tasks) que se pueden ejecutar independientemente y contienen primitivas de sincronización
+-   Los puntos de entrada a una tarea se llaman Entrys.
+-   Una tarea puede aceptar la comunicación con otro proceso vía la instrucción Accept.
+-   Se puede declarar un Type Task y luego crear instancias de procesos (tareas) identificadas con dicho type.
+    ...
+
 ---
 
 <center>
