@@ -57,11 +57,3 @@ Condición; Recepción -> Sentencias
 
 -   Siempre que tengamos N procesos y 1 Servidor, donde los procesos realizan tareas y no necesitan recibir el resultado de las mismas, necesitamos un proceso Buffer intermedio para que se vayan encolando los trabajos y los procesos no se retrasen.
 -   Hay que tener cuidado al usar la recepción con [*], ya que esto implica que el Servidor recibe pedidos en cualquier orden. Para que se respete el orden de llegada necesitamos nuevamente un proceso intermedio, esta vez no un buffer si no un Administrador o Coordinador.
-
----
-
-<center>
-
-# Rendezvous
-
-</center>
