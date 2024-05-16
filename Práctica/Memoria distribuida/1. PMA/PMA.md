@@ -102,3 +102,11 @@ Retorna V si la cola implícita del canal privado está vacía, F caso contrario
 -   La operación empty debe usarse con cuidado, si se utiliza dentro de un arreglo de procesos se pueden producir errores. Hay que usarla dentro de un único proceso **Coordinador**.
 
 ## Tipos de ejercicios
+
+#### ?
+
+#### ?
+
+#### ?
+
+#### ?

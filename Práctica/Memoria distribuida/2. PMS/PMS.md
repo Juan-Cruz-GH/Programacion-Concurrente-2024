@@ -100,3 +100,11 @@ od
 -   Hay que tener cuidado al usar la recepción con [*], ya que esto implica que el Servidor recibe pedidos en cualquier orden. Para que se respete el orden de llegada necesitamos nuevamente un proceso intermedio, esta vez no un buffer si no un Administrador o Coordinador.
 
 ## Tipos de ejercicios
+
+#### ?
+
+#### ?
+
+#### ?
+
+#### ?
