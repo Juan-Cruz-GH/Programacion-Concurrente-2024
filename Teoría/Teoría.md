@@ -782,7 +782,7 @@ release() {
 
 ## Monitores
 
-#### Conceptos básicos
+#### Conceptos generales
 
 -   Los monitores son módulos estructurados que contienen **variables** que almacenan el estado del recurso compartido y **procedimientos** que implementan operaciones sobre éste.
 -   Representan recursos compartidos.
@@ -1385,7 +1385,7 @@ empty(canal) // V o F
 
 ## Pasaje de Mensajes Sincrónicos
 
-#### Conceptos básicos
+#### Conceptos generales
 
 -   Los canales son de tipo **link** (1 emisor 1 receptor), **sincrónicos** e **implícitos**.
 -   A diferencia de PMA, la primitiva de envío de PMS es **bloqueante**:
@@ -1402,7 +1402,7 @@ empty(canal) // V o F
 
 ## Lenguaje de PMS: CSP
 
-#### Conceptos básicos
+#### Conceptos generales
 
 -   Introduce comunicación guardada.
 -   Los canales son links entre dos procesos en vez de mailbox global. Son half-duplex y nominados.
@@ -1472,13 +1472,21 @@ El do es igual excepto que se sigue iterando hasta que **todas las condiciones s
 
 ## RPC y Rendezvous
 
-#### Conceptos básicos
+#### Conceptos generales
 
--   La comunicación es **bidireccional**.
--   RPC es parecido a monitores.
--   En Rendezvous tenemos un montón de procesos que cada tanto deben interactuar.
+-   RPC: Remote Procedure Call
+-   La comunicación es **bidireccional**, lo cual es ideal para aplicaciones Cliente/Servidor.
+-   RPC y Rendezvous es parecido a monitores, exportan operaciones a través de llamadas externas (calls) con mensajes sincrónicos que **demoran al llamador hasta que la operación que se llamó se termine de ejecutar y se devuelvan los resultados**.
 
-## RPC (Remote Procedure Call)
+#### Diferencia entre RPC y Rendezvous
+
+-   La diferencia yace en la forma en que resuelven los pedidos que hacen los callers.
+    -   En RPC se crea un nuevo proceso implícito para manejar cada llamado.
+    -   En Rendezvous se usa el proceso existente. Se tiene una sentencia de **entrada o accept** que espera una invocación, la procesa y devuelve el resultado.
+
+## RPC
+
+#### Conceptos generales
 
 -   Los programas se componen de módulos que pueden estar distribuidos en distintas máquinas o no. Cada módulo puede tener muchos procesos y procedures.
 -   Los procesos de un módulo pueden compartir variables y llamar a procedures de ese módulo.
