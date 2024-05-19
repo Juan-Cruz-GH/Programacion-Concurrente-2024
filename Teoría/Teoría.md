@@ -1488,13 +1488,64 @@ El do es igual excepto que se sigue iterando hasta que **todas las condiciones s
 
 #### Conceptos generales
 
--   Los programas se componen de módulos que pueden estar distribuidos en distintas máquinas o no. Cada módulo puede tener muchos procesos y procedures.
+-   Los programas se componen de módulos que **pueden** estar distribuidos en distintas máquinas. Cada módulo **puede** tener muchos procesos y procedures.
 -   Los procesos de un módulo pueden compartir variables y llamar a procedures de ese módulo.
 -   Un proceso en un módulo puede comunicarse con procesos de otro módulo sólo invocando procedimientos exportados por éste.
+-   Estructura de los módulos:
+
+```
+module Mname
+   headers de procedures exportados (visibles por otros módulos)
+body
+   declaraciones de variables
+   código de inicialización
+   cuerpos de procedures exportados
+   procedures y procesos locales
+end
+
+// header de un procedure visible
+op opname(parámetros formales) [ returns result ]
+
+// cuerpo de un procedure visible
+proc opname(identificadores formales) returns identificador resultado
+   declaración de variables locales
+   sentencias
+end
+
+// un proceso o procedure en un módulo llama a un procedure en otro
+call Mname.opname(argumentos)
+
+// un proceso o procedure en un módulo llama a un procedure de su mismo módulo
+call opname(argumentos)
+```
+
+#### Procesos y procedures
+
+-   Los procesos locales son llamados **background** para distinguirlos de las operaciones exportadas.
+-   Lo que ocurre en los llamados depende de si el procedure es local o o de otro módulo:
+    -   Si el procedure es de otro módulo se genera un nuevo proceso que sirve el llamado, y los argumentos son pasados como mensajes entre el llamador y el proceso servidor.
+    -   Si el procedure es local se evita crear ese proceso adicional.
+    -   En ambos casos el llamador se demora hasta que el proceso servidor termine y le haya enviado los resultados.
 
 #### Sincronización en módulos
 
-...
+-   RPC es solo un mecanismo de comunicación.
+-   Aunque un proceso llamador sincroniza con el proceso servidor, necesitamos algún otro mecanismo para que los **procesos de un mismo módulo sincronicen entre sí**.
+-   Dependiendo de cómo se ejecutan los procesos dentro de un módulo, hay 2 alternativas:
+    -   Si los procesos en un módulo ejecutan con mutex, las variables compartidas son protegidas automáticamente contra acceso concurrente, pero es necesario programar sincronización por condición.
+    -   Si los procesos en un módulo ejecutan concurrentemente, necesitamos mecanismos para programar exclusión mutua y sincronización por condición (cada módulo es un programa concurrente) -> podemos usar cualquier método ya descripto (semáforos, monitores, o incluso rendezvous).
+-   En general, los procesos pueden ejecutar concurrentemente.
+
+#### RPC en Java
+
+-   Java soporta RC mediante la invocación de métodos remotos (RMI)
+-   Una aplicación que usa RMI tiene 3 componentes:
+
+1. Una interfaz que declara los headers para los métodos remotos.
+2. Una clase Server que implementa la interfaz.
+3. Uno o más clientes que llaman a los métodos remotos.
+
+-   El servidor y los clientes pueden estar en máquinas diferentes.
 
 ## Rendezvous
 
@@ -1502,9 +1553,14 @@ El do es igual excepto que se sigue iterando hasta que **todas las condiciones s
 
 -   Combina comunicación y sincronización.
 -   Un proceso cliente invoca una operación mediante un call, pero esta operación es servida por un proceso existente en lugar de por uno nuevo.
--   Un proceso servidor usa una sentencia de entry para esperar por un call.
--   Las operaciones se atienden de a una por vez.
-    ...
+-   Un proceso servidor usa una sentencia de **entry** para esperar por un call.
+-   Las operaciones se atienden de a **una por vez**.
+
+#### Operaciones
+
+-   La especificación de un módulo contiene declaraciones de los headers de las operaciones exportadas, pero el cuerpo consta de un **único proceso que sirve operaciones**.
+-   Si un módulo exporta opname, el proceso server en el módulo realiza rendezvous con un llamador de opname ejecutando una sentencia entry.
+-   Una sentencia entry demora al proceso server hasta que haya al menos un llamado pendiente de opname, luego elige el llamado más viejo (orden de llegada), copia los argumentos en los parámetros formales, ejecuta las sentencias y retorna los parámetros de resultado al llamador. Luego ambos procesos pueden continuar.
 
 ## ADA - Lenguaje con Rendezvous
 
@@ -1512,10 +1568,17 @@ El do es igual excepto que se sigue iterando hasta que **todas las condiciones s
 
 -   Tenemos un único programa llamado Procedure.
 -   Un programa ADA tiene tareas (tasks) que se pueden ejecutar independientemente y contienen primitivas de sincronización
--   Los puntos de entrada a una tarea se llaman Entrys.
--   Una tarea puede aceptar la comunicación con otro proceso vía la instrucción Accept.
--   Se puede declarar un Type Task y luego crear instancias de procesos (tareas) identificadas con dicho type.
-    ...
+-   Los puntos de entrada a una tarea se llaman **Entry**.
+-   Una tarea puede aceptar la comunicación con otro proceso vía la instrucción **Accept**.
+-   Se puede declarar un **Type Task** y luego crear instancias de procesos (tareas) identificadas con dicho type.
+
+#### Sincronización
+
+-   ADA utiliza **rendezvous** como mecanismo de sincronización y comunicación.
+-   La ejecución de una instrucción Entry demora al llamador hasta que la operación terminó, abortó, o alcanzó una excepción.
+-   Tenemos Entry común, condicional y temporal.
+-   La tarea acepta los entry calls mediante la instrucción Accept, la cual demora la tarea hasta que haya una invocación, copia los parámetros reales en los parámetros formales, y ejecuta las sentencias. Cuando termina, los parámetros formales de salida son copiados a los parámetros reales. Luego ambos procesos continúan.
+-   Se puede combinar el Accept con la sentencia wait selectiva para manejar qué entry calls se aceptan, cuándo, con qué prioridad, etc.
 
 ---
 
@@ -1524,6 +1587,10 @@ El do es igual excepto que se sigue iterando hasta que **todas las condiciones s
 # Clase 10 - 22 de mayo, 2024
 
 </center>
+
+## Paradigmas de interacción entre procesos
+
+## Librería MPI para pasaje de mensajes
 
 ---
 
