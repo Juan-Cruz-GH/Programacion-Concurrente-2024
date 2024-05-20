@@ -442,3 +442,53 @@ monitor SJN {
 ### 11. Explicar cómo se maneja la sincronización por exclusión mutua y por condición en Pthreads. Indicar la relación entre ambas. Explicar cómo se pueden simular los monitores en Pthreads.
 
 ...
+
+---
+
+<center>
+
+# Cuestionario teorías 7, 8 y 9
+
+</center>
+
+### 1. Defina y diferencie programa concurrente, programa distribuido y programa paralelo.
+
+### 2. Marque al menos 2 similitudes y 2 diferencias entre los pasajes de mensajes sincrónicos y asincrónicos.
+
+### 3. Analice qué tipo de mecanismos de pasaje de mensajes son más adecuados para resolver problemas de tipo Cliente/Servidor, Pares que interactúan, Filtros, y Productores y Consumidores. Justifique claramente su respuesta.
+
+### 4. Indique por qué puede considerarse que existe una dualidad entre los mecanismos de monitores y pasaje de mensajes. Ejemplifique.
+
+### 5. ¿En qué consiste la comunicación guardada (introducida por CSP) y cuál es su utilidad? Describa cómo es la ejecución de sentencias de alternativa e iteración que contienen comunicaciones guardadas.
+
+### 6. Marque similitudes y diferencias entre los mecanismos RPC y Rendezvous. Ejemplifique para la resolución de un problema a su elección.
+
+### 7. Considere el problema de lectores/escritores. Desarrolle un proceso servidor para implementar el acceso a la base de datos, y muestre las interfaces de los lectores y escritores con el servidor. Los procesos deben interactuar:
+
+##### a) con mensajes asincrónicos
+
+##### b) con mensajes sincrónicos
+
+##### c) con RPC
+
+##### d) con Rendezvous
+
+### 8. Modifique la solución con mensajes sincrónicos de la Criba de Eratóstenes para encontrar los números primos detallada en teoría de modo que los procesos no terminen en deadlock.
+
+### 9. Suponga que N procesos poseen inicialmente cada uno un valor. Se debe calcular la suma de todos los valores y al finalizar la computación todos deben conocer dicha suma.
+
+##### a) Analice (desde el punto de vista del número de mensajes y la performance global) las soluciones posibles con memoria distribuida para arquitecturas en estrella (centralizada), anillo circular, totalmente conectada, árbol y grilla bidimensional.
+
+##### b) Escriba las soluciones para las arquitecturas mencionadas.
+
+### 10. Describa sintéticamente las características de sincronización y comunicación de ADA.
+
+---
+
+<center>
+
+# Cuestionario teorías 10 y 11
+
+</center>
+
+### ?
