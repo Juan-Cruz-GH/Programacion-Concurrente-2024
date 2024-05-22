@@ -1590,7 +1590,55 @@ call opname(argumentos)
 
 ## Paradigmas de interacción entre procesos
 
-## Librería MPI para pasaje de mensajes
+#### Introducción
+
+-   Existen 3 esquemas básicos de interacción entre procesos:
+
+1. **Productor Consumidor**
+2. **Cliente Servidor**
+3. **Pares que interactúan**
+
+-   Estos esquemas se pueden combinar entre sí dando lugar a otros paradigmas:
+
+1. **Master Worker**: Distribuir un trabajo entre N workers. Es un caso particular de Cliente Servidor. Muy usado en paralelismo para optimizar la performance.
+2. **Algoritmos heartbeat**: Conjunto de procesos que se comunica con un subconjunto de procesos. El objetivo es que **todos** los procesos conozcan uno o más datos para mantener la info actualizada entre todos ellos.
+3. **Algoritmos pipeline**: Es un caso particular de Productor Consumidor. La mayoría de los procesos son tanto Productores como Consumidores dependiendo de la etapa.
+4. **Probes y echoes**: Similar a heartbeat. Todos los procesos tienen alguna estructura donde se conocen todos entre sí vía un árbol o grafo y se comunican de esta forma para diseminar información, mucho más eficientemente.
+5. **Algoritmos broadcast**: Permiten alcanzar una información global en una arquitectura distribuida. Consiste en avisarle a todos los procesos cuando ocurre algo importante.
+6. **Token passing**: Tenemos un recurso compartido y necesitamos usarlo de 1 a la vez. Tenemos un token que va viajando entre los distintos procesos. El proceso que tiene el token es el que tiene el "permiso" para usar el recurso compartido en ese momento. Una vez termina de utilizarlo, libera el token para que continúe su recorrido.
+7. **Servidores replicados**: Caso particular de Cliente Servidor donde tenemos muchos Servidores idénticos. Los clientes hacen pedidos que pueden ser atendidos por cualquiera de los N servidores.
+
+## Conceptos de las operaciones send y receive
+
+#### Send y receive bloqueante
+
+-   Para asegurar la semántica del send no se puede devolver control del send hasta que el dato a transmitir esté seguro (bloqueante).
+-   El send/receive bloqueantes puede ser con o sin buffering.
+    -   El **PMS** que veíamos antes es el bloqueante sin buffering.
+    -   El bloqueante con buffering copia el valor (no el puntero) de la variable a transmitir en el buffer, es decir es el **PMA** que veíamos antes.
+
+#### Send y receive no bloqueante
+
+-   Se avisa
+-   El send/receive no bloqueantes pueden ser también con o sin buffering.
+
+## Librería MPI para PMA y PMS
+
+#### Introducción
+
+-   MPI es un estándar que define la sintaxis y la semántica de las instrucciones de pasaje de mensajes.
+-   Todas las instrucciones MPI empiezan con MPI\_.
+-   Cada implementación de MPI puede extender sus funcionalidades y agregar nuevas.
+-   Posee 6 rutinas principales (más de 125 en total) que permiten escribir programas paralelos basados en pasaje de mensajes.
+
+#### Las 6 rutinas
+
+1. MPI_Init: Inicializa el entorno MPI.
+2. MPI_Finalize: Cierra el entorno MPI.
+3. MPI_Comm: Subconjuntos de procesos comunicadores.
+4. MPI_COMM_WORLD: Todos los procesos.
+5. MPI_Comm_size: Cantidad de procesos en el subconjunto comunicador.
+6. MPI_Comm_rank: Indica el identificador (id) del proceso dentro de ese comunicador.
 
 ---
 
@@ -1599,3 +1647,13 @@ call opname(argumentos)
 # Clase 11 - 29 de mayo, 2024
 
 </center>
+
+## 
+
+##
+
+##
+
+##
+
+---
