@@ -1,8 +1,4 @@
-<center>
-
-# Variables compartidas
-
-</center>
+<h1 align="center">Variables compartidas</h1>
 
 ## Sintaxis
 

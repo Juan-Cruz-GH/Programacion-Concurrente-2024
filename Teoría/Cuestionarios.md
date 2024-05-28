@@ -1,8 +1,4 @@
-<center>
-
-# Cuestionario teorías 1 y 2
-
-</center>
+<h1 align="center">Cuestionario teorías 1 y 2</h1>
 
 ### 1. Mencione al menos 3 ejemplos donde pueda encontrarse concurrencia
 
@@ -198,11 +194,7 @@ Puede terminar o no, si se da el caso de que siempre se ejecuta el bloque entero
 
 ---
 
-<center>
-
-# Cuestionario teorías 3 y 4
-
-</center>
+<h1 align="center">Cuestionario teorías 3 y 4</h1>
 
 ### 1. ¿Qué propiedades deben garantizarse en la administración de una sección crítica en procesos concurrentes? ¿Cuáles de ellas son propiedades de seguridad y cuáles de vida? En el caso de las propiedades de seguridad, ¿cuál es en cada caso el estado “malo” que se debe evitar?
 
@@ -357,11 +349,7 @@ monitor ControladorRW {
 
 ---
 
-<center>
-
-# Cuestionario teorías 5 y 6
-
-</center>
+<h1 align="center">Cuestionario teorías 5 y 6</h1>
 
 ### 1. Describa el funcionamiento de los monitores como herramienta de sincronización.
 
@@ -445,11 +433,7 @@ monitor SJN {
 
 ---
 
-<center>
-
-# Cuestionario teorías 7, 8 y 9
-
-</center>
+<h1 align="center">Cuestionario teorías 7, 8 y 9</h1>
 
 ### 1. Defina y diferencie programa concurrente, programa distribuido y programa paralelo.
 
@@ -485,10 +469,6 @@ monitor SJN {
 
 ---
 
-<center>
-
-# Cuestionario teorías 10 y 11
-
-</center>
+<h1 align="center">Cuestionario teorías 10 y 11</h1>
 
 ### ?

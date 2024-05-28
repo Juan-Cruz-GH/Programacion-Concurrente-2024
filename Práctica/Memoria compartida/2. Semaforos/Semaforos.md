@@ -1,8 +1,4 @@
-<center>
-
-# Semáforos
-
-</center>
+<h1 align="center">Semáforos</h1>
 
 ## Sintaxis
 

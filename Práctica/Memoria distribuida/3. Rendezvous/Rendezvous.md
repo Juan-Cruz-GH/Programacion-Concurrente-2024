@@ -1,8 +1,4 @@
-<center>
-
-# Rendezvous
-
-</center>
+<h1 align="center">Rendezvous</h1>
 
 ## Sintaxis
 

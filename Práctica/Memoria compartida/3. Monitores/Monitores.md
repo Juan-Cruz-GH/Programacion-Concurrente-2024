@@ -1,8 +1,4 @@
-<center>
-
-# Monitores
-
-</center>
+<h1 align="center">Monitores</h1>
 
 ## Sintaxis
 

@@ -1,8 +1,4 @@
-<center>
-
-# Clase 1 - 6 de marzo, 2024
-
-</center>
+<h1 align="center">Clase 1 - 6 de marzo, 2024</h1>
 
 ## Concurrencia
 
@@ -209,11 +205,7 @@ N procesos independientes.
 
 ---
 
-<center>
-
-# Clase 2 - 13 de marzo, 2024
-
-</center>
+<h1 align="center">Clase 2 - 13 de marzo, 2024</h1>
 
 ## Acciones atómicas
 
@@ -317,11 +309,7 @@ Una acción atómica es elegible si es la próxima acción atómica en el proces
 
 ---
 
-<center>
-
-# Clase 3 - 20 de marzo, 2024
-
-</center>
+<h1 align="center">Clase 3 - 20 de marzo, 2024</h1>
 
 -   [Link a la clase](https://drive.google.com/file/d/1rvUdra_2C5l11c2yCAn61pszhDuRUyqL/view?usp=sharing)
 
@@ -651,11 +639,7 @@ process worker[id: 1..N] {
 
 ---
 
-<center>
-
-# Clase 4 - 27 de marzo, 2024
-
-</center>
+<h1 align="center">Clase 4 - 27 de marzo, 2024</h1>
 
 ## Semáforos
 
@@ -774,11 +758,7 @@ release() {
 
 ---
 
-<center>
-
-# Clase 5 - 3 de abril, 2024
-
-</center>
+<h1 align="center">Clase 5 - 3 de abril, 2024</h1>
 
 ## Monitores
 
@@ -1120,11 +1100,7 @@ monitor Peluqueria {
 
 ---
 
-<center>
-
-# Clase 6 - 10 de abril, 2024
-
-</center>
+<h1 align="center">Clase 6 - 10 de abril, 2024</h1>
 
 ## Pthreads
 
@@ -1252,11 +1228,7 @@ sem_post(&semaforo)
 
 ---
 
-<center>
-
-# Clase 7 - 17 de abril, 2024
-
-</center>
+<h1 align="center">Clase 7 - 17 de abril, 2024</h1>
 
 ## Programación Concurrente en Memoria Distribuida
 
@@ -1377,11 +1349,7 @@ empty(canal) // V o F
 
 ---
 
-<center>
-
-# Clase 8 - 24 de abril, 2024
-
-</center>
+<h1 align="center">Clase 8 - 24 de abril, 2024</h1>
 
 ## Pasaje de Mensajes Sincrónicos
 
@@ -1464,11 +1432,7 @@ fi
 
 El do es igual excepto que se sigue iterando hasta que **todas las condiciones sean falsas**.
 
-<center>
-
-# Clase 9 - 15 de mayo, 2024
-
-</center>
+<h1 align="center">Clase 9 - 15 de mayo, 2024</h1>
 
 ## RPC y Rendezvous
 
@@ -1582,11 +1546,7 @@ call opname(argumentos)
 
 ---
 
-<center>
-
-# Clase 10 - 22 de mayo, 2024
-
-</center>
+<h1 align="center">Clase 10 - 22 de mayo, 2024</h1>
 
 ## Paradigmas de interacción entre procesos
 
@@ -1600,13 +1560,72 @@ call opname(argumentos)
 
 -   Estos esquemas se pueden combinar entre sí dando lugar a otros paradigmas:
 
-1. **Master Worker**: Distribuir un trabajo entre N workers. Es un caso particular de Cliente Servidor. Muy usado en paralelismo para optimizar la performance.
-2. **Algoritmos heartbeat**: Conjunto de procesos que se comunica con un subconjunto de procesos. El objetivo es que **todos** los procesos conozcan uno o más datos para mantener la info actualizada entre todos ellos.
-3. **Algoritmos pipeline**: Es un caso particular de Productor Consumidor. La mayoría de los procesos son tanto Productores como Consumidores dependiendo de la etapa.
-4. **Probes y echoes**: Similar a heartbeat. Todos los procesos tienen alguna estructura donde se conocen todos entre sí vía un árbol o grafo y se comunican de esta forma para diseminar información, mucho más eficientemente.
-5. **Algoritmos broadcast**: Permiten alcanzar una información global en una arquitectura distribuida. Consiste en avisarle a todos los procesos cuando ocurre algo importante.
-6. **Token passing**: Tenemos un recurso compartido y necesitamos usarlo de 1 a la vez. Tenemos un token que va viajando entre los distintos procesos. El proceso que tiene el token es el que tiene el "permiso" para usar el recurso compartido en ese momento. Una vez termina de utilizarlo, libera el token para que continúe su recorrido.
-7. **Servidores replicados**: Caso particular de Cliente Servidor donde tenemos muchos Servidores idénticos. Los clientes hacen pedidos que pueden ser atendidos por cualquiera de los N servidores.
+#### 1. Master / Workers
+
+-   Es un caso particular de Cliente Servidor.
+-   Muy usado en paralelismo para optimizar la performance.
+-   Es escalable.
+-   Consiste en distribuir un trabajo entre N workers:
+    -   Hay un proceso manager que tiene una colección de tareas que deben realizarse.
+    -   Los N workers le piden la siguiente tarea al manager, la realizan, y le avisan que terminaron.
+-   Ejemplo: multiplicación de matrices dispersas.
+
+#### 2. Algoritmos Heartbeat
+
+-   Útil para soluciones iterativas que se quieren paralelizar.
+-   Utiliza el esquema **_divide and conquer_** donde se distribuye la carga (datos) en partes iguales entre los workers.
+-   Conjunto de procesos que se comunica con un subconjunto de procesos.
+-   El objetivo es que **todos** los procesos conozcan uno o más datos para mantener la info actualizada entre todos ellos.
+-   Formato general, con pasaje de mensajes **asincrónico**:
+
+```cs
+process Worker[id: 1..N] {
+   while not termine {
+      send valores a los workers vecinos
+      receive valores de los workers vecinos
+      Actualizar valores locales
+   }
+}
+```
+
+-   Ejemplo: grid computations (imágenes) y autómatas celulares (simulación de fenómenos como incendios o crecimiento biológico).
+
+#### 3. Algoritmos Pipeline
+
+-   Un pipeline es un arreglo de procesos "filtro" que reciben datos de un puerto (canal) de entrada y entregan resultados por un canal de salida.
+-   Es un caso particular de Productor Consumidor.
+-   La mayoría de los procesos son tanto Productores como Consumidores dependiendo de la etapa.
+-   Ejemplo: multiplicación de matrices en bloques.
+
+#### 4. Probes and Echoes
+
+-   Similar a heartbeat.
+-   Las arquitecturas distribuidas se pueden ver como nodos de grafos y árboles, con canales de comunicación que los relacionan.
+-   Probe-Echo es el análogo concurrente del algoritmo secuencial DFS (Depth First Search).
+-   Todos los procesos tienen alguna estructura donde se conocen todos entre sí vía un árbol o grafo y se comunican de esta forma para diseminar información, de forma mucho más eficiente.
+-   Se envía un mensaje de un nodo al sucesor (probe) y se espera la respuesta (echo).
+-   Particularmente útil cuando se quiere recorrer redes donde **no hay** un número constante de nodos activos.
+
+#### 5. Algoritmos Broadcast
+
+-   Las redes LAN normalmente soportan la primitiva **_broadcast ch(m)_** que consiste en avisarle a todos los procesos cuando ocurre algo importante.
+-   La primitiva broadcast no es atómica, por ende no se respeta el orden.
+-   Permiten alcanzar una información global en una arquitectura distribuida.
+
+#### 6. Token Passing
+
+-   Tenemos un recurso compartido y necesitamos usarlo de 1 a la vez.
+-   Tenemos un token que va viajando entre los distintos procesos.
+-   El proceso que tiene el token es el que tiene el "permiso" para usar el recurso compartido en ese momento.
+-   Una vez termina de utilizarlo, libera el token para que continúe su recorrido.
+
+#### 7. Servidores Replicados
+
+-   Caso particular de Cliente Servidor donde tenemos muchos Servidores idénticos. Los clientes hacen pedidos que pueden ser atendidos por cualquiera de los N servidores.
+-   Un servidor puede ser replicado para:
+    1. Manejar múltiples instancias de un recurso y que cada servidor tenga una de ellas.
+       o
+    2. Darle al cliente la sensación de que hay 1 recurso cuando en realidad hay varios.
 
 ## Conceptos de las operaciones send y receive
 
@@ -1614,13 +1633,16 @@ call opname(argumentos)
 
 -   Para asegurar la semántica del send no se puede devolver control del send hasta que el dato a transmitir esté seguro (bloqueante).
 -   El send/receive bloqueantes puede ser con o sin buffering.
-    -   El **PMS** que veíamos antes es el bloqueante sin buffering.
-    -   El bloqueante con buffering copia el valor (no el puntero) de la variable a transmitir en el buffer, es decir es el **PMA** que veíamos antes.
+    -   Sin buffering: Es **PMS**. Se bloquea hasta que el receptor haga la recepción.
+    -   Con buffering: Es **PMA**. Copia el valor (no el puntero) de la variable a transmitir en el buffer y luego sigue.
 
 #### Send y receive no bloqueante
 
--   Se avisa
+-   No espera a que el dato esté "seguro" para continuar.
+-   Puede generar datos erróneos.
 -   El send/receive no bloqueantes pueden ser también con o sin buffering.
+    -   Sin buffering: Hasta que el receptor no haga el receive el dato está inseguro, es decir puede cambiar, ya que el emisor sigue ejecutando y puede manipular esa variable.
+    -   Con buffering: El dato está inseguro solo desde que se llega al send y se copia el valor en el buffer (poco tiempo).
 
 ## Librería MPI para PMA y PMS
 
@@ -1631,7 +1653,41 @@ call opname(argumentos)
 -   Cada implementación de MPI puede extender sus funcionalidades y agregar nuevas.
 -   Posee 6 rutinas principales (más de 125 en total) que permiten escribir programas paralelos basados en pasaje de mensajes.
 
+#### Inicio y fin
+
+...
+
+#### Comunicadores
+
+...
+
+#### Adquisición de información
+
+...
+
+#### Tipos de datos
+
+...
+
+#### Comunicación bloqueante
+
+...
+
+#### Comunicación no bloqueante
+
+...
+
+#### Mensajes pendientes
+
+...
+
+#### Comunicaciones colectivas
+
+...
+
 #### Las 6 rutinas
+
+...
 
 1. MPI_Init: Inicializa el entorno MPI.
 2. MPI_Finalize: Cierra el entorno MPI.
@@ -1639,21 +1695,58 @@ call opname(argumentos)
 4. MPI_COMM_WORLD: Todos los procesos.
 5. MPI_Comm_size: Cantidad de procesos en el subconjunto comunicador.
 6. MPI_Comm_rank: Indica el identificador (id) del proceso dentro de ese comunicador.
+   ...
 
 ---
 
-<center>
+<h1 align="center">Clase 11 - 29 de mayo, 2024</h1>
 
-# Clase 11 - 29 de mayo, 2024
+## Clasificación de arquitecturas paralelas
 
-</center>
+#### Por el espacio de direcciones
 
-## 
+#### Por la granularidad
 
-##
+#### Por el mecanismo de control
 
-##
+#### Por la red de interconexión
 
-##
+## Diseño de algoritmos paralelos
+
+#### Introducción
+
+#### Descomposición en tareas
+
+#### Descomposición de datos
+
+#### Descomposición funcional
+
+#### Aglomeración
+
+## Métricas de rendimiento
+
+#### Introducción
+
+#### Speedup
+
+#### Eficiencia
+
+#### Escalabilidad
+
+#### Factores limitantes del Speedup
+
+## Paradigmas de programación paralela
+
+#### Introducción
+
+#### Cliente / Servidor
+
+#### Master / Worker
+
+#### Pipeline
+
+#### Divide and Conquer
+
+#### SPMD
 
 ---

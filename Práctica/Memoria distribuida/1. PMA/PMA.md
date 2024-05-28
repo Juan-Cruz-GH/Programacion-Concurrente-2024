@@ -1,8 +1,4 @@
-<center>
-
-# Pasaje de Mensajes Asincrónicos
-
-</center>
+<h1 align="center">Pasaje de Mensajes Asincrónicos</h1>
 
 ## Sintaxis
 
