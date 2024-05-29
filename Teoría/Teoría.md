@@ -1705,29 +1705,83 @@ process Worker[id: 1..N] {
 
 #### Por el espacio de direcciones
 
+1. Memoria Compartida
+   a. UMA: Acceso a Memoria Uniforme -> Una única memoria compartida por todos los procesadores que se encuentra a la misma distancia de todos ellos.
+   b. NUMA: Acceso a Memoria No Uniforme -> Cada procesador tiene su propia memoria.
+2. Memoria Distribuida
+   ...
+
 #### Por la granularidad
+
+1. Fina: Muchas CPUs que son poco potentes pero se comunican rápido.
+2. Gruesa: Pocas CPUs potentes que tardan más tiempo en comunicarse.
+   ...
 
 #### Por el mecanismo de control
 
+1. SISD (Single Instruction Single Data): Cada procesador, en cada ciclo de reloj, ejecuta una sola instrucción sobre un solo dato.
+2. SIMD (Single Instruction Multiple Data): Cada procesador, en cada ciclo de reloj, ejecuta una sola instrucción sobre varios datos.
+3. MISD (Multiple Instruction Single Data): Cada procesador, en cada ciclo de reloj, ejecuta varias instrucciones sobre un solo dato.
+4. MIMD (Multiple Instruction Multiple Data): Cada procesador, en cada ciclo de reloj, ejecuta varias instrucciones sobre varios datos. Es el mecanismo más usado hoy en día en los multi-core.
+   ...
+
 #### Por la red de interconexión
+
+1. Redes estáticas: links punto a punto. Se usan para máquinas de pasaje de mensajes. Es más rápida. Costoso de implementar.
+2. Redes dinámicas: construidas usando switches y enlaces de comunicación. Se usan para máquinas de memoria compartida. Tiene más overhead. Más fácil de implementar.
+
+De acuerdo a la red que se elija, hay que ajustar el algoritmo.
+...
 
 ## Diseño de algoritmos paralelos
 
 #### Introducción
 
+2 etapas fundamentales:
+
+1. Descomposición en tareas.
+   a. No debería tener en cuenta la arquitectura.
+   b. Las tareas deberían ser lo más pequeñas e independientes posible.
+   c. No deberíamos tener **demasiadas** tareas ya que luego serán mayor a la cantidad de hilos.
+   d. Si las tareas realizan lo mismo con un subconjunto de datos, tenemos paralelismo de datos; si las tareas realizan cosas totalmente distintas, tenemos paralelismo funcional.
+2. Mappeo de procesos a procesadores.
+   a. Acá se tiene en cuenta la arquitectura.
+   b.
+   ...
+
 #### Descomposición en tareas
+
+1. Descomposición de datos:
+2. Descomposición funcional:
+   ...
 
 #### Descomposición de datos
 
+...
+
 #### Descomposición funcional
 
+...
+
 #### Aglomeración
+
+...
 
 ## Métricas de rendimiento
 
 #### Introducción
 
+-   En un programa paralelo, el tiempo de ejecución depende del tamaño de entrada y de la arquitectura y el número de procesadores.
+-   Sistema paralelo = (Algoritmo + Arquitectura que se utilizó)
+-   La diversidad enorme de sistemas paralelos posibles torna complejo el análisis de performance.
+-   Escalabilidad: cómo se comporta el algoritmo con un número creciente de procesadores o cuando la cantidad de procesos del algoritmo aumenta.
+
 #### Speedup
+
+-   Tiempo de ejecución paralelo: desde que arranca el primer hilo/proceso hasta que termina el último hilo/proceso.
+-   Tiempo de ejecución secuencial:
+
+Speedup = X / Tiempo de ejecución paralelo
 
 #### Eficiencia
 
