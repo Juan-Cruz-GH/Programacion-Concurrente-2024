@@ -3,6 +3,49 @@
 -   ✅ significa que el ejercicio está chequeado y es correcto.
 -   ❓ significa que el ejercicio falta ser chequeado.
 
+## Ejercicio 3) - 13 de noviembre, 2023 ✅
+
+La página web del Banco Central exhibe las diferentes cotizaciones del dólar oficial de 20 bancos del país, tanto para la compra como para la venta. Existe una tarea programada que se ocupa de actualizar la página en forma periódica y para ello consulta la cotización de cada uno de los 20 bancos. Cada banco dispone de una API, cuya única función es procesar las solicitudes de aplicaciones externas. La tarea programada consulta de a una API por vez, esperando a lo sumo 5 segundos por su respuesta. Si pasado ese tiempo no respondió, entonces se mostrará vacía la información de ese banco.
+
+```ada
+procedure BCRA is
+    task type APIBanco is
+        entry consultarDolarOficial(compra: OUT string; venta: OUT string)
+    end APIBanco
+    task TareaProgramada
+
+    APIs: array(1..20) of APIBanco
+
+    task body TareaProgramada is
+        compra, venta: string
+        cotizaciones: array(1..20) of (string, string)
+    begin
+        for i = 1 to 20 loop
+            select
+                APIs(i).consultarDolarOficial(compra, venta)
+                cotizaciones(i) := (compra, venta)
+            or delay 5
+                cotizaciones(i) := (null, null)
+            end select
+        end loop
+    end TareaProgramada
+
+    task body APIBanco is
+        cotizacionCompra: string
+        cotizacionVenta: string
+    begin
+        loop
+            Accept consultarDolarOficial(compra: OUT string; venta: OUT string) is
+                compra:= cotizacionCompra
+                venta:= cotizacionVenta
+            end consultarDolarOficial
+        end loop
+    end APIBanco
+begin
+    null
+end BCRA;
+```
+
 ## - ❓
 
 Simular la venta de entradas a un evento musical por medio de un portal web. Hay N clientes que intentan comprar una entrada para el evento; los clientes pueden ser regulares o especiales (clientes que están asociados al sponsor del evento). Cada cliente especial hace un pedido al portal y espera hasta ser atendido; cada cliente regular hace un pedido y si no es atendido antes de los 5 minutos, vuelve a hacer el pedido siguiendo el mismo patrón (espera a lo sumo 5 minutos y si no lo vuelve a intentar) hasta ser atendido. Después de ser atendido, si consiguió comprar la entrada, debe imprimir el comprobante de la compra. El portal tiene E entradas para vender y atiende los pedidos de acuerdo al orden de llegada pero dando prioridad a los Clientes Especiales. Cuando atiende un pedido, si aún quedan entradas disponibles le vende una al cliente que hizo el pedido y le entrega el comprobante.

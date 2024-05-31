@@ -3,6 +3,34 @@
 -   ✅ significa que el ejercicio está chequeado y es correcto.
 -   ❓ significa que el ejercicio falta ser chequeado.
 
+## Ejercicio 1) - 13 de noviembre, 2023 ✅
+
+En una oficina existen 100 empleados que envían documentos para imprimir en 5 impresoras compartidas. Los pedidos de impresión son procesados por orden de llegada y se asignan a la primera impresora que se encuentre libre.
+
+```cs
+chan solicitudImpresion(int, string)
+chan miDocumentoImpreso[N](string)
+
+process Empleado[id: 0..99] {
+    string doc, docImpreso
+    while true {
+        doc = Generar()
+        send solicitudImpresion(id, doc)
+        receive miDocumentoImpreso[id](docImpreso)
+    }
+}
+
+process Impresora[id: 0..4] {
+    string doc, docImpreso
+    int idE
+    while true {
+        receive solicitudImpresion(idE, doc)
+        docImpreso = Imprimir(doc)
+        send miDocumentoImpreso[idE](docImpreso)
+    }
+}
+```
+
 ## - ❓
 
 Se debe modelar el funcionamiento de una casa de venta de repuestos automotores, en la que trabajan V vendedores y que debe atender a C clientes. El modelado debe considerar que: (a) cada cliente realiza un pedido y luego espera a que se lo entreguen; y (b) los pedidos que hacen los clientes son tomados por cualquiera de los vendedores. Cuando no hay pedidos para atender, los vendedores aprovechan para controlar el stock de los repuestos (tardan entre 2 y 4 minutos para hacer esto).

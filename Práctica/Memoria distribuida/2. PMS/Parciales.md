@@ -3,6 +3,46 @@
 -   ✅ significa que el ejercicio está chequeado y es correcto.
 -   ❓ significa que el ejercicio falta ser chequeado.
 
+## Ejercicio 2) - 13 de noviembre, 2023 ✅
+
+En una oficina existen 100 empleados que envían documentos para imprimir en 5 impresoras compartidas. Los pedidos de impresión son procesados por orden de llegada y se asignan a la primera impresora que se encuentre libre.
+
+```cs
+process Empleado[id: 0..99] {
+    string doc, docImpreso
+    while true {
+        doc = Generar()
+        Coordinador!solicitudImpresion(id, doc)
+        Impresora[*]?miDocumentoImpreso[id](docImpreso)
+    }
+}
+
+process Coordinador {
+    Cola c
+    string doc
+    int idI, idE
+    while true {
+        if
+            []Empleado[*]?solicitudImpresion(idE, doc) -> c.push(idE, doc)
+            [] cola.NotEmpty(); Impresora[*]?solicitudTrabajo(idI) ->
+                    idE, doc = c.pop()
+                    Impresora[idI]!asignacionTrabajo(idE, doc)
+        fi
+    }
+}
+
+process Impresora[id: 0..4] {
+    string doc, docImpreso
+    int idE
+    while true {
+        Coordinador!solicitudTrabajo(id)
+        Coordinador?asignacionTrabajo(idE, doc)
+        docImpreso = Imprimir(doc)
+        Empleado[idE]!miDocumentoImpreso(docImpreso)
+    }
+}
+```
+
 ## - ❓
 
 En un torneo de programación hay 1 organizador, N competidores y S supervisores. El organizador comunica el desafío a resolver a cada competidor. Cuando un competidor cuenta con el desafío a resolver, lo hace y lo entrega para ser evaluado. A continuación, espera a que alguno de los supervisores lo corrija y le indique si está bien. En caso de tener errores, el competidor debe corregirlo y volver a entregar, repitiendo la misma metodología hasta que llegue a la solución esperada. Los supervisores corrigen las entregas respetando el orden en que los competidores van entregando.
