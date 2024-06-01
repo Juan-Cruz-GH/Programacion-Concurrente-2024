@@ -157,7 +157,176 @@ Se le puede agregar al final un **else** o un **or delay** a esta estructura.
 
 ## Notas importantes
 
+#### Accepts acotados
+
 -   Lo que pongamos dentro del cuerpo de un accept debe ser lo más acotado posible, ya que estamos demorando al proceso que hizo el call. Evitar poner código ineficiente o lento allí.
+
+<table>
+  <thead>
+    <tr>
+      <th>❌</th>
+      <th>✅</th>
+    </tr>
+  </thead>
+<tr><td>
+
+```ada
+procedure ejemplo is
+  task type Servidor is
+    entry Pedido(p: IN int; resul: OUT int)
+  end Servidor
+  servidores: array(1..N) of Servidor
+
+  task Persona
+
+  task body Persona is
+    pedido, resultado, resultadoTotal: int
+  begin
+    for i=1 to N loop
+      servidores(i).Pedido(pedido, resultado)
+      resultadoTotal:= resultadoTotal + resultado
+    end loop
+  end Persona
+
+  task body Servidor is
+    valor: int
+  begin
+    loop
+      Accept Pedido(p: IN int; resul: OUT int)
+        resul:= Procesar(p)
+      end Pedido
+    end loop
+  end Servidor
+begin
+  null
+end
+```
+
+Está mal porque no realiza todos los pedidos al mismo tiempo: realiza uno, espera que termine, luego realiza el siguiente, etc. No hay concurrencia.
+
+</td><td>
+
+```ada
+procedure ejemplo is
+  task type Servidor is
+    entry Pedido(p: IN int)
+  end Servidor
+  servidores: array(1..N) of Servidor
+
+  task Persona is
+    entry Resultado(r: IN int)
+  end Persona
+
+  task body Persona is
+    pedido, resultadoTotal: int
+  begin
+    for i=1 to N loop
+      servidores(i).Pedido(pedido)
+    end loop
+    for i=1 to N loop
+      Accept Resultado(r: IN int) is
+        resultadoTotal:= resultadoTotal + r
+      end Resultado
+    end loop
+  end Persona
+
+  task body Servidor is
+    pedido, resultado: int
+  begin
+    loop
+      Accept Pedido(p: IN int)
+        pedido:= p
+      end Pedido
+      resultado := Procesar(pedido)
+      Persona.Resultado(resultado)
+    end loop
+  end Servidor
+begin
+  null
+end
+```
+
+</td></tr>
+</table>
+
+#### Asignación de IDs
+
+-   A veces necesitamos que los procesos sepan cuál es su ID.
+-   Como los procesos no conocen sus IDs por defecto, para lograr que los conozcan se los enviamos desde el programa principal mediante un Entry que tienen los procesos.
+
+```ada
+procedure ejemplo is
+  task type Persona is
+    entry MiID(i: IN int)
+  end Persona
+
+  personas: array(1..N) of Persona
+
+  task body Persona is
+    id: int
+  begin
+    Accept MiID(i: IN int) is
+      id := i
+    end MiID
+  end Persona
+begin
+  for i=1 to N loop
+    personas(i).MiID(i)
+  end loop
+end ejemplo
+```
+
+#### Manejar prioridad
+
+-   Podemos manejar la prioridad utilizando select + when + accept.
+-   Solo se aceptan pedidos normales cuando hay ninguno prioritario.
+
+```ada
+...
+loop
+  select
+    Accept PedidoPrioritario()
+  or
+    when PedidoPrioritario'count = 0 ->
+      Accept PedidoNormal()
+end loop
+...
+```
+
+#### Todos los procesos necesitan que el Coordinador les envie un valor
+
+-   Cuando tenemos esta situación, es mejor que los procesos le pidan el valor al Coordinador, es decir que el Entry sea del Coordinador, y no al revés.
+-   Esto es porque si el Entry lo tienen los procesos, el Coordinador debe primero conocer los IDs de los procesos, y además, si el 1er proceso por ejemplo pierde CPU, bloquea el resto del loop.
+
+```ada
+procedure ejemplo is
+  task Coordinador is
+    entry ConocerValor(v: OUT int)
+  end Coordinador
+
+  task type Persona
+
+  personas: array(1..N) of Persona
+
+  task body Persona is
+    valor: int
+  begin
+    Coordinador.ConocerValor(valor)
+  end Persona
+
+  task body Coordinador is
+    valor: int
+  begin
+    for i=1 to N loop
+      Accept ConocerValor(v: OUT int)
+        v:= valor
+      end ConocerValor
+    end loop
+  end Coordinador
+begin
+  null
+end
+```
 
 ## Tipos de ejercicios
 
