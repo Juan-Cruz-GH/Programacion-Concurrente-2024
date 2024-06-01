@@ -1,4 +1,4 @@
-# Pasaje de Mensajes Sincrónico
+<h1 align="center">Pasaje de Mensajes Sincrónicos</h1>
 
 -   ✅ significa que el ejercicio está chequeado y es correcto.
 -   ❓ significa que el ejercicio falta ser chequeado.
