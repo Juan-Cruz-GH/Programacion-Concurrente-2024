@@ -3,6 +3,119 @@
 -   ✅ significa que el ejercicio está chequeado y es correcto.
 -   ❓ significa que el ejercicio falta ser chequeado.
 
+## Ejercicio 2) - 18 de diciembre, 2023 ❓
+
+La oficina central de una empresa de venta de indumentaria debe calcular cuántas veces fue vendido cada uno de los artículos de su catálogo. La empresa se compone de 100 sucursales y cada una de ellas maneja su propia base de datos de ventas. La oficina central cuenta con una herramienta que funciona de la siguiente manera: ante la consulta realizada para un artículo determinado, la herramienta envía el identificador del artículo a cada una de las sucursales, para que cada uno de éstas calcule cuántas veces fue vendido en ella. Al final del procesamiento, la herramienta debe conocer cuántas veces fue vendido en total, considerando todas las sucursales. Cuando ha terminado de procesar un artículo comienza con el siguiente (suponga que la herramienta tiene una función generarArtículo que retorna el siguiente ID a consultar).
+**Nota: maximizar la concurrencia. Supongo que existe una función ObtenerVentas(ID) que retorna la cantidad de veces que fue vendido el artículo con identificador ID en la base de datos de la sucursal que la llama.**
+
+```ada
+procedure parcial is
+    task type Sucursal is
+        Entry SiguienteArticulo(idArticulo: IN string)
+    end Sucursal
+    sucursales: array(1..100) of Sucursal
+
+    task body Sucursal is
+        idA: string
+        cantidad: int
+    begin
+        loop
+            Accept SiguienteArticulo(idArticulo: IN string) is
+                idA:= idArticulo
+            end SiguienteArticulo
+            cantidad:= ObtenerVentas(idA)
+            Herramienta.RecibirResultado(cantidad)
+        end loop
+    end Sucursal
+
+    task Herramienta is
+        Entry RecibirResultado(cuantasVeces: IN int)
+    end Herramienta
+
+    task body Herramienta is
+        total: int
+        idArticulo: string
+    begin
+        loop
+            idArticulo:= GenerarArticulo()
+            total:= 0
+            for i=1 to 100 loop
+                sucursales(i).SiguienteArticulo(idArticulo)
+            end loop
+            for i=1 to 100 loop
+                Accept RecibirResultado(cuantasVeces: IN int) is
+                    total:= total + cuantasVeces
+                end RecibirResultado
+            end loop
+            print(total)
+        end loop
+    end Herramienta
+begin
+    null
+end parcial
+```
+
+## Ejercicio 2) - 4 de diciembre, 2023 ❓
+
+En un negocio de cobros digitales hay P personas que deben pasar por la única caja de cobros para realizar el pago de sus boletas. Las personas son atendidas de acuerdo con el orden de llegada, teniendo prioridad aquellos que deben pagar menos de 5 boletas de los que pagan más. Adicionalmente, las personas embarazadas y los ancianos tienen prioridad sobre los dos casos anteriores. Las personas entregan sus boletas al cajero y el dinero de pago; el cajero les devuelve el vuelto y los recibos de pago.
+
+```ada
+procedure parcial is
+    task type Persona
+
+    personas: array(1..P) of Persona
+
+    task Caja is
+        Entry PedidosAncianoEmbarazada(b: IN string: p: IN int; v: OUT int; r: OUT int)
+        Entry PedidosMenosDe5(b: IN string: p: IN int; v: OUT int; r: OUT int)
+        Entry PedidosNormales(b: IN string: p: IN int; v: OUT int; r: OUT int)
+    end Caja
+
+    task body Persona is
+        boletas: cola of (string, int) -- tuplas boleta | pago
+        soyAnciano: boolean
+        soyEmbarazada: boolean
+        boleta, recibo: string
+        pago, vuelto: int
+    begin
+        while boletas.notEmpty() loop
+            boleta, pago := boletas.pop()
+            if soyAnciano or soyEmbarazada then
+                Caja.PedidosAncianoEmbarazada(boleta, pago, vuelto, recibo)
+            else if boletas.length() < 5
+                Caja.PedidosMenosDe5(boleta, pago, vuelto, recibo)
+            else
+                Caja.PedidosNormales(boleta, pago, vuelto, recibo)
+            end if
+        end loop
+    end Persona
+
+    task body Caja is
+
+    begin
+        loop
+            select
+                when (PedidosAncianoEmbarazada'count = 0) and (PedidosMenosDe5'count = 0) ->
+                    Accept PedidosNormales(b: IN string: p: IN int; v: OUT int; r: OUT int) is
+                        v, r:= Procesar(b, p)
+                    end PedidosNormales
+            or
+                when (PedidosAncianoEmbarazada'count = 0) ->
+                    Accept PedidosMenosDe5(b: IN string: p: IN int; v: OUT int; r: OUT int) is
+                        v, r:= Procesar(b, p)
+                    end PedidosMenosDe5
+            or
+                Accept PedidosAncianoEmbarazada(b: IN string: p: IN int; v: OUT int; r: OUT int) is
+                    v, r:= Procesar(b, p)
+                end PedidosAncianoEmbarazada
+            end select
+        end loop
+    end Caja
+begin
+    null
+end parcial
+```
+
 ## Ejercicio 3) - 13 de noviembre, 2023 ✅
 
 La página web del Banco Central exhibe las diferentes cotizaciones del dólar oficial de 20 bancos del país, tanto para la compra como para la venta. Existe una tarea programada que se ocupa de actualizar la página en forma periódica y para ello consulta la cotización de cada uno de los 20 bancos. Cada banco dispone de una API, cuya única función es procesar las solicitudes de aplicaciones externas. La tarea programada consulta de a una API por vez, esperando a lo sumo 5 segundos por su respuesta. Si pasado ese tiempo no respondió, entonces se mostrará vacía la información de ese banco.
@@ -55,7 +168,7 @@ Simular la venta de entradas a un evento musical por medio de un portal web. Hay
 ??
 ```
 
-## - ❓
+## - ✅
 
 Se quiere modelar el funcionamiento de un banco, al cual llegan clientes que deben realizar un pago y llevarse su comprobante. Los clientes se dividen entre los regulares y los premium, habiendo R clientes regulares y P clientes premium. Existe un único empleado en el banco, el cual atiende de acuerdo al orden de llegada, pero dando prioridad a los premium sobre los regulares. Si a los 30 minutos de llegar un cliente regular no fue atendido, entonces se retira sin realizar el pago. Los clientes premium siempre esperan hasta ser atendidos.
 
@@ -109,56 +222,56 @@ Begin
 End Parcial
 ```
 
-## - ❓
+## - ✅
 
 Una empresa de venta de calzado cuenta con S sedes. En la oficina central de la empresa se utiliza un sistema que permite controlar el stock de los diferentes modelos, ya que cada sede tiene una base de datos propia. El sistema de control de stock funciona de la siguiente manera: dado un modelo determinado, lo envía a las sedes para que cada una le devuelva la cantidad disponible en ellas; al final del procesamiento, el sistema informa el total de calzados disponibles de dicho modelo. Una vez que se completó el procesamiento de un modelo, se procede a realizar lo mismo con el siguiente modelo.
 **Nota: suponga que existe una función DevolverStock(modelo,cantidad) que utiliza cada sede donde recibe como parámetro de entrada el modelo de calzado y retorna como parámetro de salida la cantidad de pares disponibles. Maximizar la concurrencia y no generar demora innecesaria.**
 
 ```ada
-Procedure parcial is
-    Task type Sede is
-    end Sede
+procedure parcial is
+    task type Sede
     sedes: array(1..S) of Sede
 
-    Task oficinaCentral is
-        Entry EnviarModelo(m OUT: modelo)
-        Entry RecibirCantidad(cant IN: int)
-
+    task oficinaCentral is
+        Entry EnviarModelo(m: OUT string)
+        Entry RecibirCantidad(c: IN int)
     end oficinaCentral
 
-    Task Body Sede is
-        db: DataBase; m: modelo; cantidad: int
-    Begin
+    task body Sede is
+        m: string
+        cantidad: int
+    begin
         loop
             oficinaCentral.EnviarModelo(m)
             DevolverStock(m, cantidad)
             oficinaCentral.RecibirCantidad(cantidad)
         end loop
-    End Sede
+    end Sede
 
-    Task Body oficinaCentral is
-        m: modelo; cantidadTotal: int
-    Begin
+    task body oficinaCentral is
+        modelo: string
+        cantidadTotal: int
+    begin
         loop
             cantidadTotal := 0
-            m := ModeloDeInteres()
-            for i := 1 to S loop
-                accept EnviarModelo(mod OUT: modelo) do
-                    mod := m
-                end EnviarModelo
+            modelo := SiguienteModelo()
+            for i=1 to S * 2 loop
+                select
+                    Accept EnviarModelo(m: OUT) is
+                        m:= modelo
+                    end EnviarModelo
+                or
+                    Accept RecibirCantidad(c: IN int) is
+                        cantidadTotal:= cantidadTotal + c
+                    end RecibirCantidad
+                end select
             end loop
-
-            for i := 1 to S loop
-                accept RecibirCantidad(cant IN: int) do
-                    cantidadTotal += cant
-                end RecibirCantidad
-            end loop
+            print(cantidadTotal)
         end loop
-    End oficinaCentral
-
-Begin
-    NULL
-End parcial
+    end oficinaCentral
+begin
+    null
+end parcial
 ```
 
 ## - ❓
