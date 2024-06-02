@@ -437,15 +437,59 @@ monitor SJN {
 
 ### 1. Defina y diferencie programa concurrente, programa distribuido y programa paralelo.
 
+La forma más simple de diferenciar estos 3 conceptos es:
+
+1. Un programa concurrente se ejecuta en una misma máquina y parece presentar ejecución simultánea, pero no la tiene, si no que se **simula** vía context switching aprovechando tiempos muertos.
+2. Un programa distribuido ejecuta procesos en **diferentes máquinas** al mismo tiempo.
+3. Un programa paralelo ejecuta procesos de forma simultánea en una **misma máquina**.
+
 ### 2. Marque al menos 2 similitudes y 2 diferencias entre los pasajes de mensajes sincrónicos y asincrónicos.
+
+Similitudes:
+
+1. Ambos poseen recepción de mensajes bloqueante.
+2. Ambos permiten comunicación con un proceso determinado vía su ID.
+
+Diferencias:
+
+1. PMA declara los canales, PMS no.
+2. PMA posee envío de mensajes no bloqueante mientras que en PMS esto es bloqueante.
 
 ### 3. Analice qué tipo de mecanismos de pasaje de mensajes son más adecuados para resolver problemas de tipo Cliente/Servidor, Pares que interactúan, Filtros, y Productores y Consumidores. Justifique claramente su respuesta.
 
+-   En problemas de tipo Cliente/Servidor, es más adecuado utilizar PMA, para que los clientes puedan enviarle sus resultados al Servidor e inmediatamente puedan seguir trabajando.
+-   En problemas de tipo Pares que interactúan, es más adecuado utilizar PMA, porque ??
+-   En problemas de tipo Filtros, es más adecuado utilizar PMA, porque ??
+-   En problemas de tipo Productores y Consumidores, es más adecuado utilizar PMS, porque ??
+
 ### 4. Indique por qué puede considerarse que existe una dualidad entre los mecanismos de monitores y pasaje de mensajes. Ejemplifique.
+
+Con PMA se puede simular el mecanismo de un Monitor, ya que:
+
+1. Tanto en PMA como en monitores no hay variables compartidas.
+2. Tanto en PMA como en monitores los procesos realizan pedidos y esperan su resultado.
+3. Tanto en PMA como en monitores, cuando se está atendiendo un pedido no se pueden atender los demás, pero si se pueden ir encolando.
+4. Tanto en PMA como en monitores se puede respetar el orden de llegada de los pedidos, aunque de forma distinta.
 
 ### 5. ¿En qué consiste la comunicación guardada (introducida por CSP) y cuál es su utilidad? Describa cómo es la ejecución de sentencias de alternativa e iteración que contienen comunicaciones guardadas.
 
+La comunicación guardada consiste en que las operaciones de envío "!" y recepción "?" pueden ser guardadas, es decir hacer un await hasta que una condición sea verdadera.
+
+Consiste en una serie de "guardas" con formato `Condición; Comunicación -> Sentencias` donde la condición puede no estar en cuyo caso siempre es verdadera.
+
+Cada guarda tiene 3 estados:
+
+-   La guarda tiene éxito si la condición es verdadera y ejecutar la comunicación no causa demora.
+-   La guarda falla si la condición es falsa.
+-   La guarda se bloquea si la condición es verdadera pero la comunicación no puede ejecutarse en ese instante.
+
+Tenemos dos estructuras que utilizan este mecanismo: el if y el do no determinísticos.
+
+En estas estructuras se evalúan **todas las guardas al mismo tiempo** y si al menos una tiene condición verdadera, se elige una de ellas aleatoriamente. Si todas tienen condición falsa, se termina la ejecución. Si las guardas están bloqueadas, se espera hasta que alguna tenga éxito.
+
 ### 6. Marque similitudes y diferencias entre los mecanismos RPC y Rendezvous. Ejemplifique para la resolución de un problema a su elección.
+
+??
 
 ### 7. Considere el problema de lectores/escritores. Desarrolle un proceso servidor para implementar el acceso a la base de datos, y muestre las interfaces de los lectores y escritores con el servidor. Los procesos deben interactuar:
 
