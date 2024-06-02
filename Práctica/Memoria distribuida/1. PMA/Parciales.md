@@ -135,5 +135,66 @@ Se debe simular la atención en un banco con 3 cajas para atender a N clientes q
 **Nota: maximizar la concurrencia.**
 
 ```cs
-??
+chan especiales(int)
+chan normales(int)
+chan aviso()
+chan miComprobante[N](string)
+chan cajaSiguiente[3](int, string)
+chan miCaja[N](int)
+chan meVoy(int)
+
+process Cliente[id: 0..N-1] {
+    bool soyClienteEspecial
+    string pago, comprobante
+    int numCaja
+
+    if soyClienteEspecial
+        send especiales(id)
+    else
+        send normales(id)
+    send aviso()
+    receive miCaja[id](numCaja)
+    send cajaSiguiente[numCaja](id, pago)
+    receive miComprobante[id](comprobante)
+
+    send meVoy(numCaja)
+    send aviso()
+}
+
+process Coordinador {
+    int cajas[3] = ([3] 0)
+    int cantPedidosTotal = 0
+    int idC, cajaAsignada, idCaja
+    while true {
+        receive aviso()
+        if
+            [] not empty(normales) and empty(especiales) {
+                receive normales(idC)
+                cajaAsignada = cajas.posMin()
+                cajas[cajaAsignada]++
+                send miCaja[idC](cajaAsignada)
+            }
+            [] not empty(especiales) {
+                receive especiales(idC)
+                cajaAsignada = cajas.posMin()
+                cajas[cajaAsignada]++
+                send miCaja[idC](cajaAsignada)
+            }
+            [] not empty(meVoy) {
+                receive meVoy(idCaja)
+                cajas[idCaja]--
+            }
+        fi
+    }
+}
+
+process Caja[id: 0..2] {
+    int idC
+    string pago, comprobante
+    while true {
+        receive cajaSiguiente[id](idC, pago)
+        comprobante = GenerarComprobante(pago)
+        send miComprobante[idC](comprobante)
+    }
+}
 ```

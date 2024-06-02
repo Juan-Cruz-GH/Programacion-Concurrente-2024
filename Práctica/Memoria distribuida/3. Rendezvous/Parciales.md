@@ -165,7 +165,71 @@ Simular la venta de entradas a un evento musical por medio de un portal web. Hay
 **Nota: no debe modelarse la parte de la impresión del comprobante, sólo llamar a una función Imprimir (comprobante) en el cliente que simulará esa parte; la cantidad E de entradas es mucho menor que la cantidad de clientes (T << C); todas las tareas deben terminar.**
 
 ```ada
-??
+procedure parcial is
+    task type ClienteRegular
+    task type ClienteEspecial
+
+    task Portal is
+        Entry PedidosRegular(e: OUT string; c: OUT string)
+        Entry PedidosEspecial(e: OUT string; c: OUT string)
+    end Portal
+
+    clientesRegulares: array(1..N/2) of ClienteRegular
+    clientesEspeciales: array(1..N/2) of ClienteEspecial
+
+    task body ClienteRegular is
+        entrada, comprobante: string
+        meVoy: bool := false
+    begin
+        while not meVoy loop
+            select
+                Portal.PedidosRegular(entrada, comprobante)
+                meVoy := true
+                if entrada != ""
+                    Imprimir(comprobante)
+            or delay 60 * 5
+                null
+            end select
+        end loop
+    end Cliente
+
+    task body ClienteEspecial is
+        entrada, comprobante: string
+    begin
+        Portal.PedidosEspecial(entrada, comprobante)
+        if entrada != ""
+            Imprimir(comprobante)
+    end Cliente
+
+    task body Portal is
+        entradas: cola(string)(E)
+    begin
+        for i=1 to N loop
+            select
+                when PedidosEspecial'count = 0 ->
+                    Accept PedidosRegular(e: OUT string; c: OUT string) is
+                        if entradas.empty() then
+                            e := ""
+                            c := ""
+                        else
+                            e := entradas.pop()
+                            c := Generar(e)
+                    end PedidosRegular
+            or
+                Accept PedidosEspecial(e: OUT string; c: OUT string) is
+                        if entradas.empty() then
+                            e := ""
+                            c := ""
+                        else
+                            e := entradas.pop()
+                            c := Generar(e)
+                end PedidosEspecial
+            end select
+        end loop
+    end Portal
+begin
+    null
+end parcial
 ```
 
 ## - ✅
@@ -282,56 +346,57 @@ Se debe controlar el acceso a una base de datos. Existen L procesos Lectores y E
 Un proceso Escritor podrá acceder si no hay ningún otro proceso usando la base de datos; al acceder escribe y sale de la BD. Un proceso Lector podrá acceder si no hay procesos Escritores usando la base de datos; al acceder lee y sale de la BD. Siempre se le debe dar prioridad al pedido de acceso para escribir sobre el pedido de acceso para leer.
 
 ```ada
-Procedure Parcial is
-    Task Type Escritor
+procedure parcial is
+    task type Escritor
+    task type Lector
     escritores: array(1..E) of Escritor
-    Task Body Escritor is
-    Begin
+    lectores: array(1..L) of Lector
+
+    task AdministradorBD is
+        Entry PedirLector()
+        Entry PedirEscritor()
+        Entry SalirLector()
+        Entry SalirEscritor()
+    end AdministradorBD
+
+    task body Escritor is
+    begin
         loop
             select
-                AdministradorBD.PedirEscribir()
-                // escribe
+                AdministradorBD.PedirEscritor()
+                -- Escribe en la DB
                 AdministradorBD.SalirEscritor()
             else
                 delay 60
             end select
         end loop
-    End Escritor
+    end Escritor
 
-    Task Type Lector
-    lectores: array(1..L) of Lector
-    Task Body Lector is
-    Begin
+    task body Lector is
+    begin
         loop
             select
-                AdministradorBD.PedirLeer()
-                // lee
+                AdministradorBD.PedirLector()
+                -- Lee en la DB
                 AdministradorBD.SalirLector()
-            or delay 120
-                delay 300
+            or delay 60 * 2
+                delay 60 * 5
             end select
         end loop
-    End Lector
+    end Lector
 
-    Task AdministradorBD is
-        Entry PedirLeer()
-        Entry PedirEscribir()
-        Entry SalirLector()
-        Entry SalirEscritor()
-    End AdministradorBD
-    Task Body AdministradorBD is
-        cantUsando: int
-    Begin
-        cantUsando := 0
+    task body AdministradorBD is
+        cantUsando: int := 0
+    begin
         loop
             select
                 when (cantUsando == 0) -> {
-                    Accept PedirEscribir()
+                    Accept PedirEscritor()
                     Accept SalirEscritor()
                 }
             or
-                when (PedirEscribir'count == 0) -> {
-                    Accept PedirLeer()
+                when (PedirEscritor'count == 0) -> {
+                    Accept PedirLector()
                     cantUsando++
                 }
             or
@@ -339,8 +404,8 @@ Procedure Parcial is
                 cantUsando--
             end select
         end loop
-    End AdministradorBD
-Begin
-
-End Parcial
+    end AdministradorBD
+begin
+    null
+end parcial
 ```
