@@ -8,14 +8,18 @@
 En un negocio de cobros digitales hay P personas que deben pasar por la única caja de cobros para realizar el pago de sus boletas. Las personas son atendidas de acuerdo con el orden de llegada, teniendo prioridad aquellos que deben pagar menos de 5 boletas de los que pagan más. Adicionalmente, las personas embarazadas tienen prioridad sobre los dos casos anteriores. Las personas entregan sus boletas al cajero y el dinero de pago; el cajero les devuelve el vuelto y los recibos de pago.
 
 ```cs
-
+chan pagarEmbarazada(int, string, int)
+chan pagarMenosDe5(int, string, int)
+chan pagarNormal(int, string, int)
+chan miResultado[P](int, string)
+chan aviso()
 
 process Persona[id: 0..P-1] {
+    Cola vueltosRecibos(int, string) // tuplas (vuelto, recibo)
+    Cola boletas(string, int) // tuplas (boleta, pago)
     bool soyEmbarazada
-    Cola boletas(string, int) // tuplas boleta | pago
     string boleta, recibo
-    int pago, vuelto
-    Cola vueltosRecibos(int, string)
+    int pago, vuelto    // entero para el num de boletas
 
     while boletas.notEmpty() {
         boleta, pago = boletas.pop()
@@ -37,7 +41,8 @@ process Caja {
 
     while true {
         receive aviso()
-        if empty(pagarMenosDe5) and empty(pagarEmbarazada) {
+        if
+        [] empty(pagarMenosDe5) and empty(pagarEmbarazada) {
             receive pagarNormal(idP, boleta, pago)
         }
         [] empty(pagarEmbarazada) and not empty(pagarMenosDe5) {
@@ -46,6 +51,7 @@ process Caja {
         [] not empty(pagarEmbarazada) {
             receive pagarEmbarazada(idP, boleta, pago)
         }
+        fi
         vuelto, recibo = Procesar(boleta, pago)
         send miResultado[idP](vuelto, recibo)
     }
@@ -168,22 +174,22 @@ process Coordinador {
     while true {
         receive aviso()
         if
-            [] not empty(normales) and empty(especiales) {
-                receive normales(idC)
-                cajaAsignada = cajas.posMin()
-                cajas[cajaAsignada]++
-                send miCaja[idC](cajaAsignada)
-            }
-            [] not empty(especiales) {
-                receive especiales(idC)
-                cajaAsignada = cajas.posMin()
-                cajas[cajaAsignada]++
-                send miCaja[idC](cajaAsignada)
-            }
-            [] not empty(meVoy) {
-                receive meVoy(idCaja)
-                cajas[idCaja]--
-            }
+        [] not empty(normales) and empty(especiales) {
+            receive normales(idC)
+            cajaAsignada = cajas.posMin()
+            cajas[cajaAsignada]++
+            send miCaja[idC](cajaAsignada)
+        }
+        [] not empty(especiales) {
+            receive especiales(idC)
+            cajaAsignada = cajas.posMin()
+            cajas[cajaAsignada]++
+            send miCaja[idC](cajaAsignada)
+        }
+        [] not empty(meVoy) {
+            receive meVoy(idCaja)
+            cajas[idCaja]--
+        }
         fi
     }
 }
@@ -195,6 +201,8 @@ process Caja[id: 0..2] {
         receive cajaSiguiente[id](idC, pago)
         comprobante = GenerarComprobante(pago)
         send miComprobante[idC](comprobante)
+
+    // agregar if no deterministico con 2 tipos de canales distintos, especial y normal.
     }
 }
 ```

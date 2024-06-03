@@ -20,6 +20,7 @@ procedure parcial is
         cantidad: int
     begin
         loop
+            -- EntryCall a la herramienta
             Accept SiguienteArticulo(idArticulo: IN string) is
                 idA:= idArticulo
             end SiguienteArticulo
@@ -41,6 +42,7 @@ procedure parcial is
             total:= 0
             for i=1 to 100 loop
                 sucursales(i).SiguienteArticulo(idArticulo)
+                -- Accept de las sucursales
             end loop
             for i=1 to 100 loop
                 Accept RecibirResultado(cuantasVeces: IN int) is
@@ -76,7 +78,7 @@ procedure parcial is
         soyAnciano: boolean
         soyEmbarazada: boolean
         boleta, recibo: string
-        pago, vuelto: int
+        pago, vuelto: int -- Cola de boletas -> integer con el num de boletas
     begin
         while boletas.notEmpty() loop
             boleta, pago := boletas.pop()

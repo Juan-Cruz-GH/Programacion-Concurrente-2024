@@ -15,24 +15,27 @@ process Persona[id: 0..P-1] {
     // usar la terminal
     Admin!liberar()
 }
+
 process Admin {
     bool libre = true
-    Cola personas
+    Cola personas(int)
     int idP
     while true {
-        if libre; Persona[*]?pedido(idP) ->
+        if
+        [] libre; Persona[*]?pedido(idP) -> {
             libre = false;
             Persona[idP]!usar();
-
-        [] not libre; Persona[*]?pedido(idP) ->
+        }
+        [] not libre; Persona[*]?pedido(idP) -> {
             personas.push(idP);
-
-        [] Persona[*]?liberar(idP) ->
+        }
+        [] ;Persona[*]?liberar(idP) -> {
             if (personas.isEmpty())
                 libre = true;
             else
                 Persona[personas.pop()]!usar();
         }
+        fi
     }
 }
 ```
@@ -52,15 +55,18 @@ process Empleado[id: 0..99] {
 }
 
 process Coordinador {
-    Cola c
+    Cola c(int, string)
     string doc
     int idI, idE
     while true {
         if
-            [] ;Empleado[*]?solicitudImpresion(idE, doc) -> c.push(idE, doc)
-            [] cola.NotEmpty(); Impresora[*]?solicitudTrabajo(idI) ->
-                    idE, doc = c.pop()
-                    Impresora[idI]!asignacionTrabajo(idE, doc)
+        [] ;Empleado[*]?solicitudImpresion(idE, doc) -> {
+            c.push(idE, doc)
+        }
+        [] cola.NotEmpty(); Impresora[*]?solicitudTrabajo(idI) -> {
+            idE, doc = c.pop()
+            Impresora[idI]!asignacionTrabajo(idE, doc)
+        }
         fi
     }
 }
@@ -89,6 +95,7 @@ process Organizador {
     for i = 0 to N-1
         Competidor[i]!enviarDesafio(desafio)
 }
+
 process Competidor[id: 0..N-1] {
     bool estaBien = false
     string desafio, desafioResuelto
@@ -100,6 +107,7 @@ process Competidor[id: 0..N-1] {
         Supervisor[*]?correccion(estaBien)
     }
 }
+
 process Supervisor [id: 0..S-1] {
     string desafio
     bool correccion
@@ -111,17 +119,23 @@ process Supervisor [id: 0..S-1] {
         Competidor[idCompetidor]!correccion(correccion)
     }
 }
+
 process Coordinador {
     int idSupervisor, idCompetidor
     string desafio
-    cola pedidos
+    Cola pedidos(int, string)
+
+    // poner el for acá
+
     while true {
-        if ;Competidor[*]?enviarResuelto(idCompetidor, desafio) ->
+        if
+        [] ;Competidor[*]?enviarResuelto(idCompetidor, desafio) -> {
             pedidos.push(idCompetidor, desafio)
+        }
         [] not empty(pedidos); Supervisor[*]?estoyLibre(idSupervisor) -> {
             idCompetidor, desafio = pedidos.pop()
             Supervisor[idSupervisor]!recibirTrabajo(idCompetidor, desafio)
-            }
+        }
         fi
     }
 }
@@ -130,34 +144,36 @@ process Coordinador {
 ## - ❓
 
 En un comedor estudiantil hay un horno microondas que debe ser usado por E estudiantes de acuerdo con el orden de llegada. Cuando el estudiante accede al horno, lo usa y luego se retira para dejar al siguiente.
-**Nota: cada Estudiante una sólo una vez el horno.**
+**Nota: cada Estudiante usa sólo una vez el horno.**
 
 ```cs
 process Estudiante[id: 0..E-1] {
     Coordinador!pedir(id)
     Coordinador?miTurno()
-    Horno.usar()
+    HornoUsar()
     Coordinador!liberar()
 }
+
 process Coordinador {
-    cola pedidos;
+    Cola pedidos(int);
     bool libre = true
     int idEstudiante
     while true {
-        if ;Estudiante[*]?pedir(id) -> {
+        if
+        [] ;Estudiante[*]?pedir(id) -> {
             if libre {
                 libre = false
                 Estudiante[id]!miTurno()
             }
             else
                 pedidos.push(id)
-            }
+        }
         [] ;Estudiante[*]?liberar() -> {
             if pedidos.isEmpty()
                 libre = true
             else
                 Estudiante[pedidos.pop()]!miTurno()
-            }
+        }
     }
 }
 ```
