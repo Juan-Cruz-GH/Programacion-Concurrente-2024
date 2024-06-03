@@ -83,7 +83,7 @@ process Impresora[id: 0..4] {
 }
 ```
 
-## - ❓
+## - ✅
 
 En un torneo de programación hay 1 organizador, N competidores y S supervisores. El organizador comunica el desafío a resolver a cada competidor. Cuando un competidor cuenta con el desafío a resolver, lo hace y lo entrega para ser evaluado. A continuación, espera a que alguno de los supervisores lo corrija y le indique si está bien. En caso de tener errores, el competidor debe corregirlo y volver a entregar, repitiendo la misma metodología hasta que llegue a la solución esperada. Los supervisores corrigen las entregas respetando el orden en que los competidores van entregando.
 **Nota: maximizar la concurrencia y no generar demora innecesaria.**
@@ -125,8 +125,6 @@ process Coordinador {
     string desafio
     Cola pedidos(int, string)
 
-    // poner el for acá
-
     while true {
         if
         [] ;Competidor[*]?enviarResuelto(idCompetidor, desafio) -> {
@@ -141,7 +139,7 @@ process Coordinador {
 }
 ```
 
-## - ❓
+## - ✅
 
 En un comedor estudiantil hay un horno microondas que debe ser usado por E estudiantes de acuerdo con el orden de llegada. Cuando el estudiante accede al horno, lo usa y luego se retira para dejar al siguiente.
 **Nota: cada Estudiante usa sólo una vez el horno.**

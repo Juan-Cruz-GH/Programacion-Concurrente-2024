@@ -3,16 +3,14 @@
 -   ✅ significa que el ejercicio está chequeado y es correcto.
 -   ❓ significa que el ejercicio falta ser chequeado.
 
-## Ejercicio 2) - 18 de diciembre, 2023 ❓
+## Ejercicio 2) - 18 de diciembre, 2023 ✅
 
 La oficina central de una empresa de venta de indumentaria debe calcular cuántas veces fue vendido cada uno de los artículos de su catálogo. La empresa se compone de 100 sucursales y cada una de ellas maneja su propia base de datos de ventas. La oficina central cuenta con una herramienta que funciona de la siguiente manera: ante la consulta realizada para un artículo determinado, la herramienta envía el identificador del artículo a cada una de las sucursales, para que cada uno de éstas calcule cuántas veces fue vendido en ella. Al final del procesamiento, la herramienta debe conocer cuántas veces fue vendido en total, considerando todas las sucursales. Cuando ha terminado de procesar un artículo comienza con el siguiente (suponga que la herramienta tiene una función generarArtículo que retorna el siguiente ID a consultar).
 **Nota: maximizar la concurrencia. Supongo que existe una función ObtenerVentas(ID) que retorna la cantidad de veces que fue vendido el artículo con identificador ID en la base de datos de la sucursal que la llama.**
 
 ```ada
 procedure parcial is
-    task type Sucursal is
-        Entry SiguienteArticulo(idArticulo: IN string)
-    end Sucursal
+    task type Sucursal
     sucursales: array(1..100) of Sucursal
 
     task body Sucursal is
@@ -20,16 +18,14 @@ procedure parcial is
         cantidad: int
     begin
         loop
-            -- EntryCall a la herramienta
-            Accept SiguienteArticulo(idArticulo: IN string) is
-                idA:= idArticulo
-            end SiguienteArticulo
+            Herramienta.SiguienteArticulo(idA)
             cantidad:= ObtenerVentas(idA)
             Herramienta.RecibirResultado(cantidad)
         end loop
     end Sucursal
 
     task Herramienta is
+        Entry SiguienteArticulo(idArt: OUT string)
         Entry RecibirResultado(cuantasVeces: IN int)
     end Herramienta
 
@@ -41,8 +37,9 @@ procedure parcial is
             idArticulo:= GenerarArticulo()
             total:= 0
             for i=1 to 100 loop
-                sucursales(i).SiguienteArticulo(idArticulo)
-                -- Accept de las sucursales
+                Accept SiguienteArticulo(idArt: OUT string) is
+                    idArt:= idArticulo
+                end SiguienteArticulo
             end loop
             for i=1 to 100 loop
                 Accept RecibirResultado(cuantasVeces: IN int) is
@@ -57,7 +54,7 @@ begin
 end parcial
 ```
 
-## Ejercicio 2) - 4 de diciembre, 2023 ❓
+## Ejercicio 2) - 4 de diciembre, 2023 ✅
 
 En un negocio de cobros digitales hay P personas que deben pasar por la única caja de cobros para realizar el pago de sus boletas. Las personas son atendidas de acuerdo con el orden de llegada, teniendo prioridad aquellos que deben pagar menos de 5 boletas de los que pagan más. Adicionalmente, las personas embarazadas y los ancianos tienen prioridad sobre los dos casos anteriores. Las personas entregan sus boletas al cajero y el dinero de pago; el cajero les devuelve el vuelto y los recibos de pago.
 
@@ -74,22 +71,19 @@ procedure parcial is
     end Caja
 
     task body Persona is
-        boletas: cola of (string, int) -- tuplas boleta | pago
+        cantBoletas: int
         soyAnciano: boolean
         soyEmbarazada: boolean
-        boleta, recibo: string
-        pago, vuelto: int -- Cola de boletas -> integer con el num de boletas
+        boletas, recibo: string
+        pago, vuelto: int
     begin
-        while boletas.notEmpty() loop
-            boleta, pago := boletas.pop()
-            if soyAnciano or soyEmbarazada then
-                Caja.PedidosAncianoEmbarazada(boleta, pago, vuelto, recibo)
-            else if boletas.length() < 5
-                Caja.PedidosMenosDe5(boleta, pago, vuelto, recibo)
-            else
-                Caja.PedidosNormales(boleta, pago, vuelto, recibo)
-            end if
-        end loop
+        if soyAnciano or soyEmbarazada then
+            Caja.PedidosAncianoEmbarazada(boletas, pago, vuelto, recibo)
+        else if cantBoletas < 5
+            Caja.PedidosMenosDe5(boletas, pago, vuelto, recibo)
+        else
+            Caja.PedidosNormales(boletas, pago, vuelto, recibo)
+        end if
     end Persona
 
     task body Caja is
@@ -161,7 +155,7 @@ begin
 end BCRA;
 ```
 
-## - ❓
+## - ✅
 
 Simular la venta de entradas a un evento musical por medio de un portal web. Hay N clientes que intentan comprar una entrada para el evento; los clientes pueden ser regulares o especiales (clientes que están asociados al sponsor del evento). Cada cliente especial hace un pedido al portal y espera hasta ser atendido; cada cliente regular hace un pedido y si no es atendido antes de los 5 minutos, vuelve a hacer el pedido siguiendo el mismo patrón (espera a lo sumo 5 minutos y si no lo vuelve a intentar) hasta ser atendido. Después de ser atendido, si consiguió comprar la entrada, debe imprimir el comprobante de la compra. El portal tiene E entradas para vender y atiende los pedidos de acuerdo al orden de llegada pero dando prioridad a los Clientes Especiales. Cuando atiende un pedido, si aún quedan entradas disponibles le vende una al cliente que hizo el pedido y le entrega el comprobante.
 **Nota: no debe modelarse la parte de la impresión del comprobante, sólo llamar a una función Imprimir (comprobante) en el cliente que simulará esa parte; la cantidad E de entradas es mucho menor que la cantidad de clientes (T << C); todas las tareas deben terminar.**

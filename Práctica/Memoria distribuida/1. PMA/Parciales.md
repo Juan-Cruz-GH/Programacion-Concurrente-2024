@@ -3,7 +3,7 @@
 -   ✅ significa que el ejercicio está chequeado y es correcto.
 -   ❓ significa que el ejercicio falta ser chequeado.
 
-## Ejercicio 1) - 18 de diciembre, 2023 ❓
+## Ejercicio 1) - 18 de diciembre, 2023 ✅
 
 En un negocio de cobros digitales hay P personas que deben pasar por la única caja de cobros para realizar el pago de sus boletas. Las personas son atendidas de acuerdo con el orden de llegada, teniendo prioridad aquellos que deben pagar menos de 5 boletas de los que pagan más. Adicionalmente, las personas embarazadas tienen prioridad sobre los dos casos anteriores. Las personas entregan sus boletas al cajero y el dinero de pago; el cajero les devuelve el vuelto y los recibos de pago.
 
@@ -15,45 +15,41 @@ chan miResultado[P](int, string)
 chan aviso()
 
 process Persona[id: 0..P-1] {
-    Cola vueltosRecibos(int, string) // tuplas (vuelto, recibo)
-    Cola boletas(string, int) // tuplas (boleta, pago)
     bool soyEmbarazada
-    string boleta, recibo
-    int pago, vuelto    // entero para el num de boletas
+    int cantBoletas
+    string boletas, recibos
+    int pago, vuelto
 
-    while boletas.notEmpty() {
-        boleta, pago = boletas.pop()
-        if soyEmbarazada
-            send pagarEmbarazada(id, boleta, pago)
-        else if boletas.length() < 5
-            send pagarMenosDe5(id, boleta, pago)
-        else
-            send pagarNormal(id, boleta, pago)
-        send aviso()
-        receive miResultado[id](vuelto, recibo)
-        vueltosRecibos.push(vuelto, recibo)
-    }
+    if soyEmbarazada
+        send pagarEmbarazada(id, boletas, pago)
+    else if cantBoletas < 5
+        send pagarMenosDe5(id, boletas, pago)
+    else
+        send pagarNormal(id, boletas, pago)
+    send aviso()
+
+    receive miResultado[id](vuelto, recibos)
 }
 
 process Caja {
     int idP, pago, vuelto
-    string boleta, recibo
+    string boletas, recibos
 
     while true {
         receive aviso()
         if
         [] empty(pagarMenosDe5) and empty(pagarEmbarazada) {
-            receive pagarNormal(idP, boleta, pago)
+            receive pagarNormal(idP, boletas, pago)
         }
         [] empty(pagarEmbarazada) and not empty(pagarMenosDe5) {
-            receive pagarMenosDe5(idP, boleta, pago)
+            receive pagarMenosDe5(idP, boletas, pago)
         }
         [] not empty(pagarEmbarazada) {
-            receive pagarEmbarazada(idP, boleta, pago)
+            receive pagarEmbarazada(idP, boletas, pago)
         }
         fi
-        vuelto, recibo = Procesar(boleta, pago)
-        send miResultado[idP](vuelto, recibo)
+        vuelto, recibos = Procesar(boletas, pago)
+        send miResultado[idP](vuelto, recibos)
     }
 }
 ```
@@ -135,7 +131,7 @@ process Vendedor [id: 0..V-1] {
 }
 ```
 
-## - ❓
+## - ✅
 
 Se debe simular la atención en un banco con 3 cajas para atender a N clientes que pueden ser especiales (son las embarazadas y los ancianos) o regulares. Cuando el cliente llega al banco se dirige a la caja con menos personas esperando y se queda ahí hasta que lo terminan de atender y le dan el comprobante de pago. Las cajas atienden a las personas que van a ella de acuerdo al orden de llegada pero dando prioridad a los clientes especiales; cuando terminan de atender a un cliente le debe entregar un comprobante de pago.
 **Nota: maximizar la concurrencia.**
@@ -201,8 +197,6 @@ process Caja[id: 0..2] {
         receive cajaSiguiente[id](idC, pago)
         comprobante = GenerarComprobante(pago)
         send miComprobante[idC](comprobante)
-
-    // agregar if no deterministico con 2 tipos de canales distintos, especial y normal.
     }
 }
 ```
