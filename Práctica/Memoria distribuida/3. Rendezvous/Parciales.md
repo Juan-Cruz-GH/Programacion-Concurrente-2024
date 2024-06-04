@@ -413,59 +413,64 @@ Hay un sitio web para identificación genética que resuelve pedidos de N client
 
 ```ada
 procedure parcial is
-    task type Cliente
-    task type Servidor is
+    task type Cliente is
         Entry MiID(i: IN int)
-        Entry ProcesarSecuencia(s: IN ADN; r: IN int)
-    end Servidor
+        Entry MiResultado(r: IN int)
+    end Cliente
+
+    task type Servidor
+
     task SitioWeb is
-        Entry SiguienteServidor(idS: IN int)
-        Entry ServidorDisponible(idS: OUT int)
+        Entry Pedidos(idC: IN int; s: IN ADN)
+        Entry SiguientePedido(idC: OUT int; s: OUT ADN)
     end SitioWeb
 
     clientes: array(1..N) of Cliente
     servidores: array(1..5) of Servidor
 
     task body Cliente is
-        secuencia: ADN; resultado: int; idServidor: int
-    begin
-        loop
-            secuencia:= GenerarSecuencia()
-            SitioWeb.ServidorDisponible(idServidor)
-            servidores(idServidor).ProcesarSecuencia(secuencia, resultado)
-        end loop
-    end Cliente
-
-    task body Servidor is
-        id: int
+        secuencia: ADN; resultado, id: int;
     begin
         Accept MiID(i: IN int) is
             id:= i
         end MiID
         loop
-            SitioWeb.SiguienteServidor(id)
-            Accept ProcesarSecuencia(s: IN ADN; r: IN int) is
-                r:= ResolverAnalisis(s)
-            end ProcesarSecuencia
+            secuencia:= GenerarSecuencia()
+            SitioWeb.Pedidos(id, secuencia)
+            Accept MiResultado(r: IN int) is
+                resultado:= r
+            end MiResultado
+        end loop
+    end Cliente
+
+    task body Servidor is
+        idCliente, resultado: int; secuencia: ADN;
+    begin
+        loop
+            SitioWeb.SiguientePedido(idCliente, secuencia)
+            resultado:= ResolverAnalisis(secuencia)
+            clientes(idCliente).MiResultado(resultado)
         end loop
     end Servidor
 
     task body SitioWeb is
-        servidorSig: int
+        idCliente: int; secuencia: ADN
     begin
         loop
-            Accept SiguienteServidor(idS: IN int) is
-                servidorSig:= idS
+            Accept Pedidos(idC: IN int; s: IN ADN) is
+                idCliente:= idC
+                secuencia:= s
             end SiguienteServidor
-            Accept ServidorDisponible(idS: OUT int) is
-                idS:= servidorSig
+            Accept SiguientePedido(idC: OUT int; s: OUT ADN) is
+                idC:= idCliente
+                s:= secuencia
             end ServidorDisponible
         end loop
     end SitioWeb
 
 begin
-    for i=1 to 5 loop
-        servidores(i).MiID(i)
+    for i=1 to N loop
+        clientes(i).MiID(i)
     end loop
 end parcial
 ```
