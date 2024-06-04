@@ -405,3 +405,67 @@ begin
     null
 end parcial
 ```
+
+## - ❓
+
+Hay un sitio web para identificación genética que resuelve pedidos de N clientes. Cada cliente trabaja continuamente de la siguiente manera: genera la secuencia de ADN, la envía al sitio web para evaluar, y espera el resultado; después de esto puede comenzar a generar la siguiente secuencia de ADN. Para resolver estos pedidos el sitio web cuenta con 5 servidores idénticos que atienden los pedidos de acuerdo al orden de llegada (cada pedido es atendido por un único servidor).
+**Nota: maximizar la concurrencia. Suponga que los servidores tienen una función ResolverAnálisis que recibe la secuencia de ADN y devuelve un entero con el resultado.**
+
+```ada
+procedure parcial is
+    task type Cliente
+    task type Servidor is
+        Entry MiID(i: IN int)
+        Entry ProcesarSecuencia(s: IN ADN; r: IN int)
+    end Servidor
+    task SitioWeb is
+        Entry SiguienteServidor(idS: IN int)
+        Entry ServidorDisponible(idS: OUT int)
+    end SitioWeb
+
+    clientes: array(1..N) of Cliente
+    servidores: array(1..5) of Servidor
+
+    task body Cliente is
+        secuencia: ADN; resultado: int; idServidor: int
+    begin
+        loop
+            secuencia:= GenerarSecuencia()
+            SitioWeb.ServidorDisponible(idServidor)
+            servidores(idServidor).ProcesarSecuencia(secuencia, resultado)
+        end loop
+    end Cliente
+
+    task body Servidor is
+        id: int
+    begin
+        Accept MiID(i: IN int) is
+            id:= i
+        end MiID
+        loop
+            SitioWeb.SiguienteServidor(id)
+            Accept ProcesarSecuencia(s: IN ADN; r: IN int) is
+                r:= ResolverAnalisis(s)
+            end ProcesarSecuencia
+        end loop
+    end Servidor
+
+    task body SitioWeb is
+        servidorSig: int
+    begin
+        loop
+            Accept SiguienteServidor(idS: IN int) is
+                servidorSig:= idS
+            end SiguienteServidor
+            Accept ServidorDisponible(idS: OUT int) is
+                idS:= servidorSig
+            end ServidorDisponible
+        end loop
+    end SitioWeb
+
+begin
+    for i=1 to 5 loop
+        servidores(i).MiID(i)
+    end loop
+end parcial
+```
