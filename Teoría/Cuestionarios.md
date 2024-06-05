@@ -489,7 +489,13 @@ En estas estructuras se evalúan **todas las guardas al mismo tiempo** y si al m
 
 ### 6. Marque similitudes y diferencias entre los mecanismos RPC y Rendezvous. Ejemplifique para la resolución de un problema a su elección.
 
-??
+Similitudes:
+
+1. Ambos soportan comunicación bidireccional.
+
+Diferencias:
+
+1. RPC crea un nuevo proceso implícito que maneja cada llamado a una de sus funciones, mientras que Rendezvous usa el proceso existente.
 
 ### 7. Considere el problema de lectores/escritores. Desarrolle un proceso servidor para implementar el acceso a la base de datos, y muestre las interfaces de los lectores y escritores con el servidor. Los procesos deben interactuar:
 
@@ -501,15 +507,25 @@ En estas estructuras se evalúan **todas las guardas al mismo tiempo** y si al m
 
 ##### d) con Rendezvous
 
+???
+
 ### 8. Modifique la solución con mensajes sincrónicos de la Criba de Eratóstenes para encontrar los números primos detallada en teoría de modo que los procesos no terminen en deadlock.
+
+???
 
 ### 9. Suponga que N procesos poseen inicialmente cada uno un valor. Se debe calcular la suma de todos los valores y al finalizar la computación todos deben conocer dicha suma.
 
 ##### a) Analice (desde el punto de vista del número de mensajes y la performance global) las soluciones posibles con memoria distribuida para arquitecturas en estrella (centralizada), anillo circular, totalmente conectada, árbol y grilla bidimensional.
 
+???
+
 ##### b) Escriba las soluciones para las arquitecturas mencionadas.
 
+???
+
 ### 10. Describa sintéticamente las características de sincronización y comunicación de ADA.
+
+En ADA tanto la sincronización como la comunicación se logra mediante Rendezvous: ejecutar la instrucción Entry (Proceso.NombreDeSuEntry) demora al llamador hasta que el receptor acepte la llamada, la procese, y devuelva el resultado.
 
 ---
 
