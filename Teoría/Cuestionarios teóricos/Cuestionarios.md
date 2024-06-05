@@ -531,4 +531,48 @@ En ADA tanto la sincronización como la comunicación se logra mediante Rendezvo
 
 <h1 align="center">Cuestionario teorías 10 y 11</h1>
 
-### ?
+### 1. Explique brevemente los 7 paradigmas de interacción entre procesos en programación distribuida vistos en teoría. En cada caso ejemplifique, indique qué tipo de comunicación por mensajes es más conveniente y qué arquitectura de hardware se ajusta mejor. Justifique sus respuestas.
+
+### 2. Describa el paradigma “bag of tasks”. ¿Cuáles son las principales ventajas del mismo?
+
+### 3. Suponga n2 procesos organizados en forma de grilla cuadrada. Cada proceso puede comunicarse solo con los vecinos izquierdo, derecho, de arriba y de abajo (los procesos de las esquinas tienen solo 2 vecinos, y los otros en los bordes de la grilla tienen 3 vecinos). Cada proceso tiene inicialmente un valor local v.
+
+##### a) Escriba un algoritmo heartbeat que calcule el máximo y el mínimo de los n2 valores. Al terminar el programa, cada proceso debe conocer ambos valores. (Nota: no es necesario que el algoritmo esté optimizado).
+
+##### b) Analice la solución desde el punto de vista del número de mensajes.
+
+##### c) Puede realizar alguna mejora para reducir el número de mensajes?
+
+##### d) Modifique la solución de a) para el caso en que los procesos pueden comunicarse también con sus vecinos en las diagonales.
+
+### 4. Explicar la clasifican de las comunicaciones punto a punto en las librerías de Pasaje de Mensajes en general: bloqueante y no bloqueante, con y sin buffering.
+
+### 5. Describa sintéticamente las características de sincronización y comunicación de MPI. Explicar por qué son tan eficientes las comunicaciones colectivas en MPI.
+
+### 6. ¿Qué relación encuentra entre el paralelismo recursivo y la estrategia de “dividir y conquistar”? ¿Cómo aplicaría este concepto a un problema de ordenación de un arreglo?
+
+### 7.
+
+##### a) Cómo puede influir la topología de conexión de los procesadores en el diseño de aplicaciones concurrentes/paralelas/distribuidas? Ejemplifique.
+
+##### b) Qué relación existe entre la granularidad de la arquitectura y la de las aplicaciones?
+
+### 8.
+
+##### a) ¿Cuál es el objetivo de la programación paralela?
+
+##### b) ¿Cuál es el significado de las métricas de speedup y eficiencia? ¿Cuáles son los rangos de valores en cada caso?
+
+##### c) ¿En qué consiste la “ley de Amdahl”?
+
+##### d) Suponga que la solución a un problema es paralelizada sobre p procesadores de dos maneras diferentes. En un caso, el speedup (S) está regido por la función S=p-1 y en el otro por la función S=p/2. ¿Cuál de las dos soluciones se comportará más eficientemente al crecer la cantidad de procesadores? Justifique claramente.
+
+##### e) Suponga que el tiempo de ejecución de un algoritmo secuencial es de 10000 unidades de tiempo, de las cuales sólo el 90% corresponde a código paralelizable. ¿Cuál es el límite en la mejora que puede obtenerse paralelizando el algoritmo? Justifique.
+
+### 9.
+
+##### a) Analizando el código de multiplicación de matrices en paralelo planteado en la teoría, y suponiendo que N=256 y P=8, indique cuántas asignaciones, cuántas sumas y cuántos productos realiza cada proceso. ¿Cuál sería la cantidad para cada operación en la solución secuencial realizada por un único proceso?
+
+##### b) Si los procesadores P1 a P7 son iguales, y sus tiempos de asignación son 1, de suma 2 y de producto 3, y si el procesador P8 es 3 veces más lento, ¿cuánto tarda el proceso total concurrente? ¿Cuál es el valor del speedup? ¿Cómo podría modificar el código para mejorar el speedup?
+
+##### c) Calcule la Eficiencia que se obtiene en el ejemplo original y en el modificado.
