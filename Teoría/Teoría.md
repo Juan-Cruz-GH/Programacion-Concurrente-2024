@@ -1705,67 +1705,105 @@ process Worker[id: 1..N] {
 
 #### Por el espacio de direcciones
 
-1. Memoria Compartida
-   a. UMA: Acceso a Memoria Uniforme -> Una única memoria compartida por todos los procesadores que se encuentra a la misma distancia de todos ellos.
-   b. NUMA: Acceso a Memoria No Uniforme -> Cada procesador tiene su propia memoria.
-2. Memoria Distribuida
-   ...
+##### Memoria Compartida
+
+-   Usa como modelo de comunicación el **acceso a memoria compartida**.
+-   Todas las unidades de procesamiento acceden a un espacio de memoria global y compartido.
+-   Se clasifica en UMA y NUMA:
+    -   UMA (Acceso a Memoria Uniforme): Una única memoria compartida por todos los procesadores que se encuentra a la misma distancia de todos ellos.
+    -   NUMA (Acceso a Memoria No Uniforme): Cada procesador tiene su propia memoria local aparte de la memoria global compartida.
+
+##### Memoria Distribuida
+
+-   Usa como modelo de comunicación el **pasaje de mensajes**.
+-   Cada procesador tiene su propia memoria local.
+-   Los procesadores no pueden acceder a la memoria de nadie salvo la local.
+-   No hay una memoria global compartida.
 
 #### Por la granularidad
 
-1. Fina: Muchas CPUs que son poco potentes pero se comunican rápido.
-2. Gruesa: Pocas CPUs potentes que tardan más tiempo en comunicarse.
-   ...
+1. **Grano fino**: Muchas CPUs que no son muy potentes pero se comunican rápido.
+2. **Grano grueso**: Pocas CPUs muy potentes que tardan bastante tiempo en comunicarse.
+
+En cualquier caso, la granularidad de la arquitectura debería adaptarse a la granularidad del programa a desarrollar, y viceversa.
 
 #### Por el mecanismo de control
 
-1. SISD (Single Instruction Single Data): Cada procesador, en cada ciclo de reloj, ejecuta una sola instrucción sobre un solo dato.
-2. SIMD (Single Instruction Multiple Data): Cada procesador, en cada ciclo de reloj, ejecuta una sola instrucción sobre varios datos.
-3. MISD (Multiple Instruction Single Data): Cada procesador, en cada ciclo de reloj, ejecuta varias instrucciones sobre un solo dato.
-4. MIMD (Multiple Instruction Multiple Data): Cada procesador, en cada ciclo de reloj, ejecuta varias instrucciones sobre varios datos. Es el mecanismo más usado hoy en día en los multi-core.
-   ...
+1. **SISD (Single Instruction Single Data)**: Cada procesador, en cada ciclo de reloj, ejecuta una sola instrucción sobre **un solo dato**.
+2. **SIMD (Single Instruction Multiple Data)**: Cada procesador, en cada ciclo de reloj, ejecuta una sola instrucción sobre **varios datos**.
+3. **MISD (Multiple Instruction Single Data)**: Cada procesador, en cada ciclo de reloj, ejecuta **varias instrucciones** sobre un solo dato.
+4. **MIMD (Multiple Instruction Multiple Data)**: Cada procesador, en cada ciclo de reloj, ejecuta **varias instrucciones sobre varios datos**. Es el mecanismo más usado hoy en día en los multi-core.
 
 #### Por la red de interconexión
 
-1. Redes estáticas: links punto a punto. Se usan para máquinas de pasaje de mensajes. Es más rápida. Costoso de implementar.
-2. Redes dinámicas: construidas usando switches y enlaces de comunicación. Se usan para máquinas de memoria compartida. Tiene más overhead. Más fácil de implementar.
+Las redes que conectan a los distintos procesadores, ya sea en Memoria Compartida o en Memoria Distribuida, se dividen en 2 tipos:
 
+1. **Redes estáticas**: links punto a punto. Se usan para máquinas de pasaje de mensajes. Es más rápida. Es costoso de implementar.
+2. **Redes dinámicas**: construidas usando switches y enlaces de comunicación. Se usan para máquinas de memoria compartida. Tiene más overhead. Es más fácil de implementar.
+
+![Redes estáticas](https://i.imgur.com/VS2DwnR.png)
+
+![Redes dinámicas](https://i.imgur.com/zhXWQTP.png)
 De acuerdo a la red que se elija, hay que ajustar el algoritmo.
-...
 
 ## Diseño de algoritmos paralelos
 
-#### Introducción
+En general, el diseño de un algoritmo paralelo involucra los siguientes pasos:
 
-2 etapas fundamentales:
+1. Identificar tareas concurrentes.
+2. Mappear tareas a procesos en distintos procesadores.
+3. Distribuir datos de entrada, intermedios y de salida.
+4. Manejo de acceso a datos compartidos.
+5. Sincronizar procesos.
 
-1. Descomposición en tareas.
-   a. No debería tener en cuenta la arquitectura.
-   b. Las tareas deberían ser lo más pequeñas e independientes posible.
-   c. No deberíamos tener **demasiadas** tareas ya que luego serán mayor a la cantidad de hilos.
-   d. Si las tareas realizan lo mismo con un subconjunto de datos, tenemos paralelismo de datos; si las tareas realizan cosas totalmente distintas, tenemos paralelismo funcional.
-2. Mappeo de procesos a procesadores.
-   a. Acá se tiene en cuenta la arquitectura.
-   b.
-   ...
+Mappeo de procesos a procesadores.
+a. Acá se tiene en cuenta la arquitectura.
+b.
+...
 
 #### Descomposición en tareas
 
-1. Descomposición de datos:
-2. Descomposición funcional:
-   ...
+-   Se descompone el problema en procesos/tareas.
+-   No debería tener en cuenta la arquitectura.
+-   Las tareas deberían ser lo más pequeñas e independientes posible.
+-   No deberíamos tener **demasiadas** tareas ya que luego serán mayor a la cantidad de hilos.
+-   Si las tareas realizan lo mismo con un subconjunto de datos, tenemos paralelismo de datos; si las tareas realizan cosas totalmente distintas, tenemos paralelismo funcional.
 
-#### Descomposición de datos
+##### Descomposición de datos
 
-...
+-   Se dividen la totalidad de los datos en partes, usualmente de igual tamaño, y cada tarea procesa una parte.
+-   Cada tarea realiza la misma operación en su parte de los datos.
+-   En general hay poca o nula comunicación entre procesos.
 
-#### Descomposición funcional
+##### Descomposición funcional
 
-...
+-   Se dividen las tareas según diferentes operaciones.
+-   Se realizan diferentes operaciones sobre los mismos datos.
+-   En general requiere bastante comunicación entre procesos.
 
 #### Aglomeración
 
-...
+-   Esta etapa busca combinar tareas pequeñas en tareas más grandes, con el objetivo de reducir el overhead de tener demasiadas tareas pequeñas: se reducen los costos de comunicación y sincronización.
+-   Se busca obtener un algoritmo que ejecute en forma eficiente en una clase de máquina real.
+
+#### Características de las tareas
+
+Las tareas poseen una serie de características que impactan en la performance:
+
+1. **Generación de las tareas**: las tareas se generan estáticamente o dinámicamente.
+2. **Tamaño de las tareas**: las tareas pueden tener todas el mismo tamaño o no.
+3. **Conocimiento del tamaño de las tareas**: si las tareas tienen distinto tamaño, podemos o no predecir sus tamaños.
+4. **Volumen de datos asociado a cada tarea**: muchos o pocos.
+
+#### Mapeo de tareas a procesadores
+
+-   Se especifica en qué procesador se ejecuta cada tarea.
+-   Este problema no existe en monocores ni tampoco en máquinas de memoria compartida con scheduling automático.
+-   El objetivo es minimizar el tiempo de ejecución.
+-   Un buen mappeo es **crítico** para obtener buena performance:
+    -   Ubicar tareas que pueden ejecutarse concurrentemente en distintos procesadores para maximizar la concurrencia.
+    -   Asignar prioritariamente los procesadores disponibles a las tareas que estén en el camino crítico.
+    -   Ubicar tareas que se comunican con mucha frecuencia en el mismo procesador para incrementar la localidad.
 
 ## Métricas de rendimiento
 
