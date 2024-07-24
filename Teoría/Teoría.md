@@ -1756,11 +1756,6 @@ En general, el diseño de un algoritmo paralelo involucra los siguientes pasos:
 4. Manejo de acceso a datos compartidos.
 5. Sincronizar procesos.
 
-Mappeo de procesos a procesadores.
-a. Acá se tiene en cuenta la arquitectura.
-b.
-...
-
 #### Descomposición en tareas
 
 -   Se descompone el problema en procesos/tareas.
@@ -1800,7 +1795,7 @@ Las tareas poseen una serie de características que impactan en la performance:
 -   Se especifica en qué procesador se ejecuta cada tarea.
 -   Este problema no existe en monocores ni tampoco en máquinas de memoria compartida con scheduling automático.
 -   El objetivo es minimizar el tiempo de ejecución.
--   Un buen mappeo es **crítico** para obtener buena performance:
+-   Un buen mappeo es **crítico** para obtener buena performance (se debe tener en cuenta la arquitectura):
     -   Ubicar tareas que pueden ejecutarse concurrentemente en distintos procesadores para maximizar la concurrencia.
     -   Asignar prioritariamente los procesadores disponibles a las tareas que estén en el camino crítico.
     -   Ubicar tareas que se comunican con mucha frecuencia en el mismo procesador para incrementar la localidad.
