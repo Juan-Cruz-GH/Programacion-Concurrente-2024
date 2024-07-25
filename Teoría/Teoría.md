@@ -1854,14 +1854,61 @@ Las tareas poseen una serie de características que impactan en la performance:
 
 #### Introducción
 
+-   Un paradigma de programación es una clase de algoritmos que resuelve distintos problemas, pero poseen la misma estructura general.
+-   Cada paradigma posee un esqueleto algorítmico que define la estructura común, y luego lo demás lo define cada programa.
+-   En específico, cada paradigma de programación paralela, además de lo ya mencionado, también posee un mismo patrón o esqueleto de comunicación o sincronización.
+
 #### Cliente / Servidor
+
+-   Paradigma dominante en las aplicaciones de tipo procesamiento distribuido.
+-   Los servidores son procesos que esperan pedidos de múltiples clientes. Los clientes esperan a que el servidor resuelva y les devuelva el resultado.
+-   La comunicación es bidireccional.
+-   Se atiende de a un cliente a la vez, o de a varios con multithreading.
+-   Se puede implementar vía Rendezvous, RPC, monitores.
+-   Los clientes y servidores pueden estar en una misma máquina o en máquinas distintas.
 
 #### Master / Worker
 
+-   Tenemos un Master que es el que tiene todas las tareas que se deben realizar.
+-   Tenemos N Workers que son los que saben resolver esas tareas.
+-   Lo que hace el Master es distribuir o repartir esas tareas que posee entre los distintos Workers.
+-   A su vez, el Master puede a veces necesitar recibir los resultados e integrarlos todos para dar un resultado final.
+-   Está más orientado a trabajar sobre arquitecturas distribuidas.
+-   Existen 2 formas en que el Master distribuya las tareas:
+    -   Estática: distribuye todas las tareas entre todos los procesos al principio una sola vez.
+    -   Dinámico: distribuye las tareas bajo demanda o petición.
+-   Este paradigma es una variante de SPMD con dos programas en vez de solo uno.
+
 #### Pipeline
+
+-   El problema a resolver se divide en una secuencia de pasos. Estos pasos pasan entren los procesos, y cada uno realiza un paso.
+-   Ejemplos: filtrado, etiquetado, análisis de imágenes, etc.
+-   Cuando se empieza a ejecutar la etapa 2, ya se libera la etapa 1 para que pase el siguiente, etc.
+-   Hay que asignar cuidadosamente qué etapa a qué procesador, según las especializaciones de cada procesador.
+-   Si una etapa es muy costosa, ésta suele ser asignada a varios procesadores a la vez para evitar que esta etapa retarde a todas las demás.
 
 #### Divide and Conquer
 
+-   Implica un paralelismo recursivo donde el problema se descompone en procesos recursivos que trabajan sobre partes del conjunto total de datos.
+-   En cada llamado recursivo se genera una tarea con un subconjunto de los datos.
+-   Fase dividir: división repetida de problemas y datos en subproblemas más chicos.
+-   Fase conquistar: resolución independiente de cada subproblema, con frecuencia de forma recursiva.
+-   Fase de combinar: se combinan las soluciones en una solución global.
+-   Ejemplos: mergesort, calculo de raíces en funciones continuas, problema del viajante.
+
 #### SPMD
 
----
+-   Significa Single Program Multiple Data.
+-   Tenemos muchos procesos donde todos ejecutan un mismo programa sobre un conjunto distinto de datos. Cada uno va a su ritmo. En algún momento seguramente necesitarán sincronizarse o comunicarse.
+-   Tiene dos fases:
+    -   Fase 1: se elige cómo se van a distribuir los datos entre los distintos procesos.
+    -   Fase 2: generar el programa paralelo en vase a esa distribución.
+-   Suele implicar paralelismo iterativo donde un programa consta de un conjunto de procesos los cuales tienen 1 o más for loops. Cada proceso es un programa iterativo.
+-   El dominio de datos se divide entre los procesos siguiendo diferentes patrones y dependiendo de la arquitectura.
+
+##### Ejemplo: multiplicación de matrices
+
+-   Existen muchas variantes:
+-   Un proceso calcula una fila.
+-   Un proceso calcula una columna.
+-   Un proceso por cada celda.
