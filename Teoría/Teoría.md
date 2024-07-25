@@ -1804,23 +1804,51 @@ Las tareas poseen una serie de características que impactan en la performance:
 
 #### Introducción
 
--   En un programa paralelo, el tiempo de ejecución depende del tamaño de entrada y de la arquitectura y el número de procesadores.
+-   En un programa paralelo, el tiempo de ejecución depende del tamaño de entrada, de la arquitectura y del número de procesadores.
 -   Sistema paralelo = (Algoritmo + Arquitectura que se utilizó)
 -   La diversidad enorme de sistemas paralelos posibles torna complejo el análisis de performance.
+-   Al medir la performance de un algoritmo paralelo, es común testear esa solución variando el número de procesadores. De acá salen las nociones de **speedup**, **eficiencia**, y la **ley de Amdahl**.
 -   Escalabilidad: cómo se comporta el algoritmo con un número creciente de procesadores o cuando la cantidad de procesos del algoritmo aumenta.
 
 #### Speedup
 
--   Tiempo de ejecución paralelo: desde que arranca el primer hilo/proceso hasta que termina el último hilo/proceso.
--   Tiempo de ejecución secuencial:
+-   Tiempo de ejecución paralelo: desde que **arranca el primer hilo/proceso** hasta que **termina el último hilo/proceso**.
+-   Tiempo de ejecución secuencial: tiempo que tarda la **mejor solución secuencial** al problema que estamos resolviendo, ejecutada sobre el mejor procesador que se tenga.
+-   Speedup = `Tiempo de ejecución secuencial / Tiempo de ejecución paralelo`
+-   El Speedup sirve para independizarnos del **tamaño** del problema.
+-   El Speedup significa cuántas veces más rápida es la solución paralela comparada a la secuencial, por ende:
+    -   si el Speedup < 1, la solución paralela es más **lenta** a la secuencial.
+    -   si el Speedup = 1, la solución paralela tiene la **misma** performance que la secuencial.
+    -   si el Speedup > 1, la solución paralela es **mejor** que la secuencial.
+-   El Speedup óptimo es la mayor aceleración que se podría encontrar en la arquitectura que tenemos.
 
-Speedup = X / Tiempo de ejecución paralelo
+![Speedup óptimo](https://i.imgur.com/lSmmegL.png)
+
+-   Básicamente, significa tener en cuenta la potencia del mejor procesador de la arquitectura para así saber la potencia relativa de los demás procesadores. Este valor estará entre 0 y 1. **El Speedup óptimo es la suma de estas potencias relativas**.
+-   El Speedup puede valer entre 0 y el Speedup óptimo.
+    -   Cuando el Speedup tiene el mismo valor que el Speedup óptimo, tenemos un Speedup **lineal o perfecto**.
+    -   Cuando el Speedup tiene un valor menor al Speedup óptimo, tenemos un Speedup **sublineal**.
+    -   Cuando el Speedup tiene un valor mayor al Speedup óptimo, tenemos un Speedup **superlineal**. Esto suele pasar si no se está usando el algoritmo secuencial óptimo al calcular el Speedup.
 
 #### Eficiencia
 
+-   Eficiencia = `Speedup / Speedup óptimo`
+-   Sirve para independizarnos de la arquitectura que se utilizó.
+-   La eficiencia indica que tan cerca estamos del Speedup óptimo o qué tan bien estoy aprovechando la arquitectura, es decir qué tan bien estoy usando todos los procesadores.
+
 #### Escalabilidad
 
+-   Las pruebas con pocos procesadores y datos pequeños no son confiables para predecir el rendimiento con muchos procesadores y datos grandes debido a diferencias en localidad de memoria y costos de comunicación.
+
 #### Factores limitantes del Speedup
+
+1. **Alto porcentaje de código secuencial (Ley de Amdahl)**.
+2. **Alto porcentaje de entrada/salida comparado a la computación**.
+3. **Algoritmo no adecuado**: no óptimo.
+4. **Excesiva contención de memoria**: demasiadas variables compartidas.
+5. **Tamaño del problema**.
+6. **Desbalance de carga**: algunos procesadores trabajan mucho y otros poco o nada.
+7. **Overhead paralelo**: el tiempo que se tarda en crear procesos, sincronizarlos, comunicarlos, etc.
 
 ## Paradigmas de programación paralela
 
