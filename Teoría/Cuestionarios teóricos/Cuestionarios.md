@@ -533,46 +533,222 @@ En ADA tanto la sincronización como la comunicación se logra mediante Rendezvo
 
 ### 1. Explique brevemente los 7 paradigmas de interacción entre procesos en programación distribuida vistos en teoría. En cada caso ejemplifique, indique qué tipo de comunicación por mensajes es más conveniente y qué arquitectura de hardware se ajusta mejor. Justifique sus respuestas.
 
+1. **Master / Workers**:
+    - Es la implementación distribuida del modelo Bag of Tasks. Se distribuye un trabajo entre N workers, donde el Master actúa como la bolsa de tareas.
+    - Ejemplo: multiplicación de matrices dispersas.
+    - Tipo de PM conveniente: PMA.
+    - Arquitectura mejor: distribuida.
+2. **Heartbeat**:
+    - Los procesos deben, cada tanto, intercambiar información entre ellos. Esto produce una forma de barrera de sincronización entre ellos, impidiendo que se produzcan errores.
+    - Ejemplo: grid computations (imágenes).
+    - Tipo de PM conveniente: PMA.
+    - Arquitectura mejor: ?
+3. **Pipeline**:
+    - El pipeline es un arreglo de procesos que actúan de filtros. La información fluye entre ellos transformándola de a poco.
+    - Ejemplo: multiplicación de matrices en bloques.
+    - Tipo de PM conveniente: PMA.
+    - Arquitectura mejor: ?
+4. **Probes and Echoes**:
+    - La interacción entre procesos permite recorrer estructuras dinámicas, diseminando y recolectando información. Una primitiva Probe es un mensaje enviado por un nodo a todos sus hijos, mientras que un Echo es la respuesta a ese Probe.
+    - Ejemplo: recorrer redes donde no hay un número constante de nodos activos.
+    - Tipo de PM conveniente: ?
+    - Arquitectura mejor: ?
+5. **Broadcast**:
+    - Un proceso envía un mensaje a todos los demás mediante una primitiva.
+    - Ejemplo: toma de decisiones descentralizadas.
+    - Tipo de PM conveniente: PMA.
+    - Arquitectura mejor: distribuida
+6. **Token Passing**:
+    - Existe un Token que los procesos se van pasando entre sí. El proceso que tiene el Token en un momento determinado es el que tiene acceso con exclusión mutua al recurso compartido.
+    - Ejemplo: se quiere hacer uso de un recurso compartido entre N procesos.
+    - Tipo de PM conveniente: PMS.
+    - Arquitectura mejor:
+7. **Servidores Replicados**:
+    - Los procesos Servidores gestionan el acceso a una instancia del recurso compartido cada uno.
+    - Ejemplo: se quiere hacer uso de N recursos compartidos entre N procesos.
+    - Tipo de PM conveniente: ?
+    - Arquitectura mejor: ?
+
 ### 2. Describa el paradigma “bag of tasks”. ¿Cuáles son las principales ventajas del mismo?
+
+El paradigma bag of tasks consiste en que se tiene una bolsa de tareas, y los procesos van quitando tareas de la bolsa y resolviendolas. Posiblemente agregan tareas nuevas a la bolsa.
+
+Las principales ventajas son la escalabilidad y facilidad de equilibrar la carga.
 
 ### 3. Suponga n2 procesos organizados en forma de grilla cuadrada. Cada proceso puede comunicarse solo con los vecinos izquierdo, derecho, de arriba y de abajo (los procesos de las esquinas tienen solo 2 vecinos, y los otros en los bordes de la grilla tienen 3 vecinos). Cada proceso tiene inicialmente un valor local v.
 
 ##### a) Escriba un algoritmo heartbeat que calcule el máximo y el mínimo de los n2 valores. Al terminar el programa, cada proceso debe conocer ambos valores. (Nota: no es necesario que el algoritmo esté optimizado).
 
+```cs
+?
+```
+
 ##### b) Analice la solución desde el punto de vista del número de mensajes.
+
+?
 
 ##### c) Puede realizar alguna mejora para reducir el número de mensajes?
 
+?
+
 ##### d) Modifique la solución de a) para el caso en que los procesos pueden comunicarse también con sus vecinos en las diagonales.
+
+?
 
 ### 4. Explicar la clasifican de las comunicaciones punto a punto en las librerías de Pasaje de Mensajes en general: bloqueante y no bloqueante, con y sin buffering.
 
+-   **Bloqueante con buffering**: Es el PMA. Copia el valor de la variable en el buffer y luego sigue su ejecución.
+-   **Bloqueante sin buffering**: Es el PMS. Se bloquea hasta que el receptor haga la recepción.
+-   **No bloqueante con buffering**: El dato está inseguro desde que se ejecuta el send y se copia el valor en el buffer (poco tiempo).
+-   **No bloqueante sin buffering**: El dato está inseguro hasta que el receptor haga el receive, es decir, como el emisor sigue ejecutando, puede cambiar y manipular la variable que envió en el send una o varias veces antes que el receptor haga el receive.
+
 ### 5. Describa sintéticamente las características de sincronización y comunicación de MPI. Explicar por qué son tan eficientes las comunicaciones colectivas en MPI.
 
+MPI soporta las barreras como método de sincronización.
+
+MPI soporta las 4 alternativas de comunicación explicadas en el punto anterior.
+
+Las comunicaciones colectivas de MPI son muy eficientes porque explotan el paralelismo.
+
 ### 6. ¿Qué relación encuentra entre el paralelismo recursivo y la estrategia de “dividir y conquistar”? ¿Cómo aplicaría este concepto a un problema de ordenación de un arreglo?
+
+El paralelismo recursivo es un paradigma muy apto para la estrategia de dividir y conquistar, ya que consiste en asignar un proceso nuevo a cada llamada recursiva, dividiendo el problema naturalmente en los procesos. Esto se podría adaptar a la ordenación de un arreglo de la siguiente manera:
+
+1. Fase de dividir:
+    - Se divide el arreglo en dos mitades y se asigna una a cada uno de 2 procesos nuevos.
+    - Esto se repitehasta que solo queda 1 numero en cada proceso.
+2. Fase de conquistar:
+    - Los procesos devuelven a su padre el array ordenado, y este a su vez ordena los resultados de sus hijos hasta llegar al proceso original.
 
 ### 7.
 
 ##### a) Cómo puede influir la topología de conexión de los procesadores en el diseño de aplicaciones concurrentes/paralelas/distribuidas? Ejemplifique.
 
+?
+
 ##### b) Qué relación existe entre la granularidad de la arquitectura y la de las aplicaciones?
+
+En una arquitectura de grano fino existen muchos procesadores pero con poca capacidad de procesamiento por lo que son mejores para programas que requieran mucha comunicación entre tareas o procesos que requieren poco procesamiento (programa de grano fino).
+
+Por otro lado, en una arquitectura de grano grueso se tienen pocos procesadores con mucha capacidad de procesamiento por lo que son más adecuados para programas de grano grueso en los cuales se tienen pocos procesos que realizan mucho procesamiento y requieren de menos comunicación.
+
+Es decir, la granularidad de las aplicaciones debería estar en sintonía con la granularidad de la arquitectura con la que se está trabajando.
 
 ### 8.
 
 ##### a) ¿Cuál es el objetivo de la programación paralela?
 
+El principal objetivo de la programación paralela es la mejora de la performance en términos de tiempo de ejecución, al realizar varias tareas al mismo tiempo en vez de una por una.
+
 ##### b) ¿Cuál es el significado de las métricas de speedup y eficiencia? ¿Cuáles son los rangos de valores en cada caso?
+
+El Speedup representa cuántas veces más rápida es la solución paralela comparada a la secuencial. Posee un rango de valores posibles entre 0 y el Speedup óptimo.
+
+-   Si es < 1, la solución paralela es más lenta a la secuencial.
+-   Si es = 1, la solución paralela es igual que la secuencial (en performance).
+-   Si es > 1, la solución paralela es mejor que la secuencial.
+
+El Speedup óptimo es la mayor aceleración que se podría encontrar en la arquitectura que tenemos. Significa tener en cuenta la potencia del mejor procesador de la arquitectura para así saber la potencia relativa de los demás procesadores. Este valor estará entre 0 y 1. El Speedup óptimo es la suma de estas potencias relativas.
+
+La eficiencia indica que tan cerca estamos del Speedup óptimo y por ende representa qué tan bien se está aprovechando la arquitectura.
 
 ##### c) ¿En qué consiste la “ley de Amdahl”?
 
+La Ley de Amdahl postula que para todo algoritmo existe un speedup máximo alcanzable (límite), independiente del número de procesadores. Ese valor dependerá de la cantidad de código paralelizable. Si el 80% de un programa es paralelizable:
+
+Limite = 1/(1 − Paralelizable) = 1/(1 − 0.8) = 1/0.2 = 5
+
 ##### d) Suponga que la solución a un problema es paralelizada sobre p procesadores de dos maneras diferentes. En un caso, el speedup (S) está regido por la función S=p-1 y en el otro por la función S=p/2. ¿Cuál de las dos soluciones se comportará más eficientemente al crecer la cantidad de procesadores? Justifique claramente.
+
+1. Caso 1:
+    - Speedup = P - 1
+    - P = 2 → Speedup = 1
+    - P = 4 → Speedup = 3
+    - P = 8 → Speedup = 7
+    - P = 16 → Speedup = 15
+2. Caso 2:
+    - Speedup = P / 2 → 15.
+    - P = 2 → Speedup = 1
+    - P = 4 → Speedup = 2
+    - P = 8 → Speedup = 4
+    - P = 16 → Speedup = 8
+
+Podemos ver que el Speedup del caso 2 va empeorando más y más comparado al del caso 1 cuando va aumentando la cantidad de procesadores. Esto nos dice que la solución 1 será más eficiente cuando ocurre eso.
 
 ##### e) Suponga que el tiempo de ejecución de un algoritmo secuencial es de 10000 unidades de tiempo, de las cuales sólo el 90% corresponde a código paralelizable. ¿Cuál es el límite en la mejora que puede obtenerse paralelizando el algoritmo? Justifique.
 
+Limite = 1/(1 − Paralelizable) = 1/(1 − 0.9) = 1/0.1 = 10
+
+El límite es 10. Paralelizando, el algoritmo puede ser como máximo 10 veces más rápido.
+
 ### 9.
+
+```cs
+process worker [ w = 1 to P] {
+    int primera = (w-1)*(n/P) + 1;
+    int ultima = primera + (n/P) - 1;
+    for [i = primera to ultima] {
+        for [j = 1 to n] {
+            c[i,j] = 0;
+            for [k = 1 to n]
+                c[i,j] = c[i,j] + (a[i,k]*b[k,j]);
+        }
+    }
+}
+```
 
 ##### a) Analizando el código de multiplicación de matrices en paralelo planteado en la teoría, y suponiendo que N=256 y P=8, indique cuántas asignaciones, cuántas sumas y cuántos productos realiza cada proceso. ¿Cuál sería la cantidad para cada operación en la solución secuencial realizada por un único proceso?
 
+En la solución secuencial (P = 1):
+
+-   256/1 = 256. El único proceso calcula 256 filas.
+-   El primer bucle se ejecuta 256 veces.
+-   El segundo bucle se ejecuta 256 veces.
+-   El tercer bucle se ejecuta 256 veces.
+-   **Asignaciones**:
+    -   (256 \* 256 \* 256) → Sale del código de asignación c[i,j] = c[i,j] + (a[i,k]\*b[k,j]);
+    -   (256 \* 256) → Sale del código de asignación c[i,j] = 0;
+    -   (256 \* 256 \* 256) + (256 \* 256) = 16_842_752
+-   **Sumas**: (256 \* 256 \* 256) = 16_777_216
+-   **Productos**: (256 \* 256 \* 256) = 16_777_216
+
+En la solución paralela:
+
+-   256/8 = 32. Cada proceso calcula 32 filas.
+-   El primer bucle se ejecuta 32 veces para cada proceso.
+-   El segundo bucle se ejecuta 256 veces para cada proceso.
+-   El tercer bucle se ejecuta 256 veces para cada proceso.
+-   **Asignaciones**: (32 \* 256 \* 256) + (32 \* 256) = 2_105_344
+-   **Sumas**: (32 \* 256 \* 256) = 2_097_152
+-   **Productos**: (32 \* 256 \* 256) = 2_097_152
+
 ##### b) Si los procesadores P1 a P7 son iguales, y sus tiempos de asignación son 1, de suma 2 y de producto 3, y si el procesador P8 es 3 veces más lento, ¿cuánto tarda el proceso total concurrente? ¿Cuál es el valor del speedup? ¿Cómo podría modificar el código para mejorar el speedup?
 
+P1 a P7 tienen tiempo de asignación de 1, de suma 2 y de producto 3.
+P8 es el triple de lento.
+
+**El tiempo para el tipo de procesador P1 a P7 sería**:
+
+Asignaciones: 2_105_344 \* 1 = 2_105_344
+Sumas: 2_097_152 \* 2 = 4_194_304
+Productos: 2_097_152 \* 3 = 6_291_456
+
+(2_105_344 + 4_194_304 + 6_291_456) = 12_591_104 unidades de tiempo
+
+**El tiempo para P8 sería**:
+
+(2_105_344 + 4_194_304 + 6_291_456) \* 3 = 37_773_312
+
+El tiempo total está determinado por el procesador más lento = **37_773_312**
+
+El valor del speedup sería el tiempo si el programa fuera secuencial dividido el tiempo paralelo. El tiempo paralelo ya lo tenemos.
+
+Tiempo secuencial: (16_842_752 \* 1) + (16_777_216 \* 2) + (16_777_216 \* 3) = 100_728_832
+
+Speedup = 100_728_832 / 37_773_312 = **2.666**
+
+El Speedup se podría mejorar ...
+
 ##### c) Calcule la Eficiencia que se obtiene en el ejemplo original y en el modificado.
+
+...
